@@ -1,0 +1,1 @@
+ALTER TABLE seats ADD COLUMN status TEXT NOT NULL DEFAULT 'free';

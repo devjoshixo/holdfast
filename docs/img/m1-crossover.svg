@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" font-family="Inter, Helvetica Neue, Arial, sans-serif">
+<rect width="1200" height="675" fill="#fcfcfb"/>
+<text x="90" y="50" font-size="30" font-weight="700" fill="#0b0b0b">One booking endpoint, three concurrency mechanisms</text>
+<text x="90" y="78" font-size="17" fill="#52514e">p99 latency as the seat pool shrinks &#8212; 30,000 concurrent requests, all three provably correct. Lower is better.</text>
+<line x1="110" y1="570.0" x2="980" y2="570.0" stroke="#e8e7e2" stroke-width="1"/>
+<text x="98" y="575.0" font-size="14" fill="#8a8880" text-anchor="end">0s</text>
+<line x1="110" y1="503.6" x2="980" y2="503.6" stroke="#e8e7e2" stroke-width="1"/>
+<text x="98" y="508.6" font-size="14" fill="#8a8880" text-anchor="end">1s</text>
+<line x1="110" y1="437.1" x2="980" y2="437.1" stroke="#e8e7e2" stroke-width="1"/>
+<text x="98" y="442.1" font-size="14" fill="#8a8880" text-anchor="end">2s</text>
+<line x1="110" y1="370.7" x2="980" y2="370.7" stroke="#e8e7e2" stroke-width="1"/>
+<text x="98" y="375.7" font-size="14" fill="#8a8880" text-anchor="end">3s</text>
+<line x1="110" y1="304.3" x2="980" y2="304.3" stroke="#e8e7e2" stroke-width="1"/>
+<text x="98" y="309.3" font-size="14" fill="#8a8880" text-anchor="end">4s</text>
+<line x1="110" y1="237.9" x2="980" y2="237.9" stroke="#e8e7e2" stroke-width="1"/>
+<text x="98" y="242.9" font-size="14" fill="#8a8880" text-anchor="end">5s</text>
+<line x1="110" y1="171.4" x2="980" y2="171.4" stroke="#e8e7e2" stroke-width="1"/>
+<text x="98" y="176.4" font-size="14" fill="#8a8880" text-anchor="end">6s</text>
+<line x1="110" y1="105.0" x2="980" y2="105.0" stroke="#e8e7e2" stroke-width="1"/>
+<text x="98" y="110.0" font-size="14" fill="#8a8880" text-anchor="end">7s</text>
+<text x="150.0" y="604" font-size="17" fill="#52514e" text-anchor="middle">10,000</text>
+<text x="416.7" y="604" font-size="17" fill="#52514e" text-anchor="middle">1,000</text>
+<text x="683.3" y="604" font-size="17" fill="#52514e" text-anchor="middle">100</text>
+<text x="950.0" y="604" font-size="17" fill="#52514e" text-anchor="middle">10</text>
+<text x="550.0" y="638" font-size="15" fill="#8a8880" text-anchor="middle">seats available &#8212; contention increases to the right &#8594;</text>
+<polyline points="150.0,259.8 416.7,412.6 683.3,436.5 950.0,435.1" fill="none" stroke="#2a78d6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="150.0,150.2 416.7,231.9 683.3,227.2 950.0,291.7" fill="none" stroke="#eb6834" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="150.0,395.3 416.7,414.6 683.3,399.9 950.0,319.6" fill="none" stroke="#1baf7a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="150.0" cy="259.8" r="6.5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2.5"/>
+<circle cx="416.7" cy="412.6" r="6.5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2.5"/>
+<circle cx="683.3" cy="436.5" r="6.5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2.5"/>
+<circle cx="950.0" cy="435.1" r="6.5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2.5"/>
+<circle cx="150.0" cy="150.2" r="6.5" fill="#eb6834" stroke="#fcfcfb" stroke-width="2.5"/>
+<circle cx="416.7" cy="231.9" r="6.5" fill="#eb6834" stroke="#fcfcfb" stroke-width="2.5"/>
+<circle cx="683.3" cy="227.2" r="6.5" fill="#eb6834" stroke="#fcfcfb" stroke-width="2.5"/>
+<circle cx="950.0" cy="291.7" r="6.5" fill="#eb6834" stroke="#fcfcfb" stroke-width="2.5"/>
+<circle cx="150.0" cy="395.3" r="6.5" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2.5"/>
+<circle cx="416.7" cy="414.6" r="6.5" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2.5"/>
+<circle cx="683.3" cy="399.9" r="6.5" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2.5"/>
+<circle cx="950.0" cy="319.6" r="6.5" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2.5"/>
+<text x="972" y="441.1" font-size="18" font-weight="600" fill="#2a78d6">CAS</text>
+<text x="972" y="297.7" font-size="18" font-weight="600" fill="#eb6834">Constraint</text>
+<text x="972" y="325.6" font-size="18" font-weight="600" fill="#1baf7a">Row lock</text>
+<text x="150" y="522" font-size="16" font-style="italic" fill="#52514e">The row lock starts best and reverses as demand concentrates &#8212; its losers all queue on the same row.</text>
+</svg>

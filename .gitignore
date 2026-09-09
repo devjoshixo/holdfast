@@ -1,0 +1,17 @@
+# local tooling
+.claude/
+UNITITLED-1.txt
+api
+
+# go
+*.exe
+*.test
+*.out
+bin/
+
+# env / secrets
+.env
+.env.*
+
+# os
+.DS_Store
