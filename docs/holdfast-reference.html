@@ -1541,31 +1541,32 @@ pool queueing, local Docker and system noise are all inside those numbers.</p>
 <h2 id="runbook"><span class="num">19</span>Runbook</h2>
 
 <pre><code>make db-up      # docker compose up -d --wait db
-make migrate    # applies ONE migration — see the warning below
-make run        # DATABASE_URL=... go run ./cmd/api
+make migrate    # apply EVERY migration, in sorted order
 make test       # go test -race ./...
-make db-down    # docker compose down</code></pre>
+make db-reset   # docker compose down -v — drops the data volume too
+make db-down    # stop the container, KEEP the volume</code></pre>
 
-<div class="note bad">
-  <span class="tag">The README is wrong about this, and a fresh clone will fail</span>
-  <p><code>make migrate</code> applies a <strong>single</strong> file, and its default is
-  <code>MIGRATION ?= migrations/003_idempotency.sql</code>. On an empty database that runs third-first:
-  <code>request_lookup</code> references <code>seats(id)</code>, which does not exist yet, and psql stops
-  on the error (<code>-v ON_ERROR_STOP=1</code>).</p>
-  <p>All four, in order:</p>
-  <pre style="margin:10px 0 0"><code>make migrate MIGRATION=migrations/001_init.sql
-make migrate MIGRATION=migrations/002_cas_status.sql
-make migrate MIGRATION=migrations/003_idempotency.sql
-make migrate MIGRATION=migrations/004_holds.sql</code></pre>
-  <p style="margin-top:10px">Worth fixing properly — a loop over <code>migrations/*.sql</code> in sorted
-  order, or a real migration tool. Until then the README's one-line <code>make migrate</code> is a trap
-  for anyone cloning this, including you in three months.</p>
+<div class="note">
+  <span class="tag">Fixed 2026-09-22 — the old behaviour was a trap</span>
+  <p><code>make migrate</code> used to apply a <strong>single</strong> file, defaulting to
+  <code>MIGRATION ?= migrations/003_idempotency.sql</code>. On an empty database that ran third-first:
+  <code>request_lookup</code> references <code>seats(id)</code>, which did not exist yet, and psql
+  stopped on the error. Following the README on a fresh clone failed at step two.</p>
+  <p>It now loops over <code>migrations/*.sql</code> in sorted order and stops at the first failure.
+  <code>make migrate-one MIGRATION=...</code> is still there for applying a single file deliberately.</p>
+</div>
+
+<div class="note warn">
+  <span class="tag">Migrations are not idempotent</span>
+  <p>Re-running an applied migration fails, which is correct — but it means <code>make migrate</code>
+  only works against a fresh database. <code>make db-down</code> keeps the <code>pgdata</code> volume,
+  so the usual full reset is <code>make db-reset &amp;&amp; make db-up &amp;&amp; make migrate</code>.</p>
 </div>
 
 <h4>What the tooling actually is</h4>
 
 <dl class="kv">
-  <dt>Makefile</dt><dd>Five targets. <code>db-up</code> passes <code>--wait</code>, so it blocks until the container's healthcheck passes rather than racing the first connection.</dd>
+  <dt>Makefile</dt><dd>Seven targets. <code>db-up</code> passes <code>--wait</code>, so it blocks until the container's healthcheck passes rather than racing the first connection. <code>migrate</code> loops over every migration in sorted order; <code>migrate-one</code> applies a single named file; <code>db-reset</code> drops the volume.</dd>
   <dt>docker-compose.yml</dt><dd>One service: <code>postgres:16</code>, credentials <code>holdfast</code> / <code>holdfast_dev</code>, port 5432 published, named volume <code>pgdata</code>. Healthcheck <code>pg_isready -U holdfast</code> every 2s, 15 retries.</dd>
   <dt>go.mod</dt><dd><code>github.com/retr0/holdfast</code>, Go 1.25.6. One direct dependency, <code>pgx/v5 v5.10.0</code>. No web framework, no ORM, no test library — standard <code>testing</code> throughout.</dd>
   <dt>cmd/api/main.go</dt><dd>25 lines: open a pool with a 5s context, ping, print <code>holdfast: database reachable</code>. A connectivity smoke test, not a server — there is no HTTP surface yet.</dd>

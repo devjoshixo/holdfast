@@ -90,10 +90,10 @@ pattern, the current state of the expiring-holds work, and a glossary.
 ## Running it
 
 ```sh
-make db-up                                          # start Postgres in Docker
-make migrate MIGRATION=migrations/001_init.sql      # migrations apply ONE AT A TIME,
-make migrate MIGRATION=migrations/002_cas_status.sql # in order — `make migrate` alone
-make migrate MIGRATION=migrations/003_idempotency.sql # defaults to 003 and will fail
-make migrate MIGRATION=migrations/004_holds.sql      # on an empty database
-make test                                           # run the suite with -race
+make db-up      # start Postgres in Docker (waits for the healthcheck)
+make migrate    # apply every migration in sorted order
+make test       # run the suite with -race
 ```
+
+`make db-down` stops the container but keeps the data volume, so applied migrations survive.
+`make db-reset` drops the volume too — use that for a genuinely clean slate.
