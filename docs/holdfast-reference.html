@@ -1540,9 +1540,42 @@ pool queueing, local Docker and system noise are all inside those numbers.</p>
 
 <h2 id="runbook"><span class="num">19</span>Runbook</h2>
 
-<pre><code>make db-up      # start Postgres 16 in Docker (user/db: holdfast)
-make migrate    # apply migrations 001-004 in order
-make test       # run the suite with -race</code></pre>
+<pre><code>make db-up      # docker compose up -d --wait db
+make migrate    # applies ONE migration — see the warning below
+make run        # DATABASE_URL=... go run ./cmd/api
+make test       # go test -race ./...
+make db-down    # docker compose down</code></pre>
+
+<div class="note bad">
+  <span class="tag">The README is wrong about this, and a fresh clone will fail</span>
+  <p><code>make migrate</code> applies a <strong>single</strong> file, and its default is
+  <code>MIGRATION ?= migrations/003_idempotency.sql</code>. On an empty database that runs third-first:
+  <code>request_lookup</code> references <code>seats(id)</code>, which does not exist yet, and psql stops
+  on the error (<code>-v ON_ERROR_STOP=1</code>).</p>
+  <p>All four, in order:</p>
+  <pre style="margin:10px 0 0"><code>make migrate MIGRATION=migrations/001_init.sql
+make migrate MIGRATION=migrations/002_cas_status.sql
+make migrate MIGRATION=migrations/003_idempotency.sql
+make migrate MIGRATION=migrations/004_holds.sql</code></pre>
+  <p style="margin-top:10px">Worth fixing properly — a loop over <code>migrations/*.sql</code> in sorted
+  order, or a real migration tool. Until then the README's one-line <code>make migrate</code> is a trap
+  for anyone cloning this, including you in three months.</p>
+</div>
+
+<h4>What the tooling actually is</h4>
+
+<dl class="kv">
+  <dt>Makefile</dt><dd>Five targets. <code>db-up</code> passes <code>--wait</code>, so it blocks until the container's healthcheck passes rather than racing the first connection.</dd>
+  <dt>docker-compose.yml</dt><dd>One service: <code>postgres:16</code>, credentials <code>holdfast</code> / <code>holdfast_dev</code>, port 5432 published, named volume <code>pgdata</code>. Healthcheck <code>pg_isready -U holdfast</code> every 2s, 15 retries.</dd>
+  <dt>go.mod</dt><dd><code>github.com/retr0/holdfast</code>, Go 1.25.6. One direct dependency, <code>pgx/v5 v5.10.0</code>. No web framework, no ORM, no test library — standard <code>testing</code> throughout.</dd>
+  <dt>cmd/api/main.go</dt><dd>25 lines: open a pool with a 5s context, ping, print <code>holdfast: database reachable</code>. A connectivity smoke test, not a server — there is no HTTP surface yet.</dd>
+</dl>
+
+<div class="note warn">
+  <span class="tag">The volume is the thing that bites</span>
+  <p><code>make db-down</code> stops the container but keeps <code>pgdata</code>, so applied migrations
+  persist and re-running one fails. For a genuinely clean slate: <code>docker compose down -v</code>.</p>
+</div>
 
 <h4>Direct equivalents</h4>
 <pre><code>docker compose up -d db
@@ -1569,12 +1602,7 @@ go run ./cmd/api        # prints "holdfast: database reachable"</code></pre>
 </div>
 
 <hr>
-<p class="footnote">Built from source on 2026-09-22: <code>PLAN.md</code>, <code>README.md</code>,
-<code>docs/M0-contract.md</code>, <code>docs/M1-design.md</code>, <code>docs/M1-results.md</code>,
-<code>docs/M2-design.md</code>, <code>docs/M2-results-questions.md</code>, all four migrations,
-<code>internal/booking/booking.go</code>, <code>internal/booking/hold.go</code>,
-<code>internal/booking/booking_test.go</code>, <code>cmd/api/main.go</code>. Where this document
-infers rather than reports, it says so.</p>
+<p class="footnote"><strong>Coverage:</strong> this manual documents every file in the repository. Built from a full read on 2026-09-22 of <code>PLAN.md</code>, <code>README.md</code>, all five docs under <code>docs/</code>, all four migrations, <code>internal/booking/{booking,hold,booking_test}.go</code>, <code>cmd/api/main.go</code>, <code>Makefile</code>, <code>docker-compose.yml</code> and <code>go.mod</code>. Where it infers rather than reports, it says so.</p>
 
 </div>
 </main>
