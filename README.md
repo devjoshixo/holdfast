@@ -80,6 +80,13 @@ Design and reasoning: **[docs/M2-design.md](docs/M2-design.md)**.
 
 Full spec and milestone breakdown: **[PLAN.md](PLAN.md)**.
 
+## Reference
+
+**[docs/holdfast-reference.html](docs/holdfast-reference.html)** — the field manual. Open it in a
+browser. Every mechanism with its code and what a losing request pays, the harness design including
+the three times it measured the wrong thing, the measured crossover, the claim-first idempotency
+pattern, the current state of the expiring-holds work, and a glossary.
+
 ## Running it
 
 ```sh

@@ -1,0 +1,1584 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Holdfast Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&display=swap">
+<style>
+:root{
+  --paper:#f5f6f8; --card:#ffffff; --ink:#191c21; --ink-2:#4a515c; --muted:#6b7480;
+  --rule:#dde1e7; --rule-2:#eceff3;
+  --accent:#0f6b52; --accent-ink:#0a4f3c; --accent-soft:#e3f1ec;
+  --good:#0f6b52; --good-soft:#e3f1ec;
+  --warn:#8a5a10; --warn-soft:#f7eedd;
+  --bad:#97303f;  --bad-soft:#f8e6e8;
+  --code-bg:#f0f2f5; --code-ink:#1d2229;
+  --shadow:0 1px 2px rgba(20,24,30,.05), 0 8px 24px -12px rgba(20,24,30,.18);
+  --sans:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --serif:"IBM Plex Serif",ui-serif,Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#101317; --card:#171b21; --ink:#e6e9ee; --ink-2:#aab3bf; --muted:#7f8a97;
+    --rule:#262c35; --rule-2:#1e232b;
+    --accent:#4fbf9b; --accent-ink:#7fd4b8; --accent-soft:#12261f;
+    --good:#4fbf9b; --good-soft:#12261f;
+    --warn:#d9a441; --warn-soft:#2a2113;
+    --bad:#e2798a;  --bad-soft:#2b161a;
+    --code-bg:#1b2027; --code-ink:#dde3ea;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#101317; --card:#171b21; --ink:#e6e9ee; --ink-2:#aab3bf; --muted:#7f8a97;
+  --rule:#262c35; --rule-2:#1e232b;
+  --accent:#4fbf9b; --accent-ink:#7fd4b8; --accent-soft:#12261f;
+  --good:#4fbf9b; --good-soft:#12261f;
+  --warn:#d9a441; --warn-soft:#2a2113;
+  --bad:#e2798a;  --bad-soft:#2b161a;
+  --code-bg:#1b2027; --code-ink:#dde3ea;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-size:16px; line-height:1.62;
+  font-feature-settings:"kern","liga";
+}
+img{max-width:100%;height:auto}
+[hidden]{display:none!important}
+
+/* ---------- shell ---------- */
+.shell{display:grid; grid-template-columns:270px minmax(0,1fr); gap:0; max-width:1320px; margin:0 auto;}
+.toc{
+  counter-reset:toc;
+  position:sticky; top:0; align-self:start; max-height:100vh; overflow-y:auto;
+  padding:34px 22px 60px 24px; border-right:1px solid var(--rule);
+}
+main{min-width:0; padding:34px 28px 120px;}
+.wrap{max-width:74ch;}
+.wide{max-width:none;}
+
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .toc{position:static; max-height:none; border-right:0; border-bottom:1px solid var(--rule); padding:18px 16px}
+  main{padding:22px 16px 90px}
+}
+
+/* ---------- toc ---------- */
+.toc-brand{font-family:var(--serif); font-weight:700; font-size:16px; letter-spacing:-.01em; margin:0 0 2px}
+.toc-sub{font-size:11.5px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; margin:0 0 20px}
+.toc ol{list-style:none; margin:0; padding:0}
+.toc li{margin:0}
+.toc a{
+  display:block; padding:5px 0 5px 26px; position:relative;
+  color:var(--ink-2); text-decoration:none; font-size:13.4px; line-height:1.4;
+  border-left:2px solid transparent; margin-left:-2px;
+}
+.toc a::before{
+  counter-increment:toc; content:counter(toc);
+  position:absolute; left:4px; top:5px; font-family:var(--mono); font-size:11px;
+  color:var(--muted); font-variant-numeric:tabular-nums;
+}
+.toc a:hover{color:var(--accent-ink); border-left-color:var(--accent)}
+.toc .toc-sep{margin:16px 0 6px; padding-left:4px; font-size:10.5px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--muted); font-weight:600}
+
+/* ---------- masthead ---------- */
+.masthead{border-bottom:2px solid var(--ink); padding-bottom:20px; margin-bottom:34px}
+.eyebrow{
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 10px; font-weight:500;
+}
+h1{
+  font-family:var(--serif); font-weight:700; font-size:clamp(30px,5.2vw,44px);
+  line-height:1.1; letter-spacing:-.02em; margin:0 0 12px; text-wrap:balance;
+}
+.standfirst{font-size:17.5px; color:var(--ink-2); margin:0; max-width:62ch; text-wrap:pretty}
+.meta{
+  display:flex; flex-wrap:wrap; gap:6px 18px; margin-top:18px;
+  font-family:var(--mono); font-size:11.8px; color:var(--muted);
+}
+
+/* ---------- headings ---------- */
+h2{
+  font-family:var(--serif); font-weight:700; font-size:26px; letter-spacing:-.015em;
+  margin:58px 0 4px; padding-top:22px; border-top:1px solid var(--rule); text-wrap:balance;
+}
+h2 .num{font-family:var(--mono); font-size:13px; color:var(--accent); font-weight:500; display:block; margin-bottom:6px; letter-spacing:.1em}
+h3{font-family:var(--sans); font-weight:600; font-size:18.5px; margin:34px 0 6px; letter-spacing:-.005em; text-wrap:balance}
+h4{font-family:var(--sans); font-weight:600; font-size:15px; margin:24px 0 4px; color:var(--ink-2)}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 16px; padding-left:22px}
+li{margin:0 0 6px}
+li>ul,li>ol{margin-top:6px}
+strong{font-weight:600}
+a{color:var(--accent-ink)}
+
+/* ---------- code ---------- */
+code{
+  font-family:var(--mono); font-size:.875em; background:var(--code-bg); color:var(--code-ink);
+  padding:1px 5px; border-radius:3px; border:1px solid var(--rule-2);
+}
+pre{
+  background:var(--code-bg); color:var(--code-ink); border:1px solid var(--rule);
+  border-radius:6px; padding:16px 18px; overflow-x:auto; margin:0 0 18px;
+  font-family:var(--mono); font-size:13px; line-height:1.62;
+}
+pre code{background:none; border:0; padding:0; font-size:inherit}
+.code-label{
+  font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--muted); margin:0 0 5px; display:block;
+}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto; margin:0 0 18px; border:1px solid var(--rule); border-radius:6px; background:var(--card)}
+table{border-collapse:collapse; width:100%; font-size:14px}
+th,td{padding:9px 13px; text-align:left; border-bottom:1px solid var(--rule-2); vertical-align:top}
+thead th{
+  background:var(--rule-2); font-size:11.5px; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--ink-2); font-weight:600; white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+.win{color:var(--good); font-weight:600}
+
+/* ---------- callouts ---------- */
+.note{
+  border-left:3px solid var(--accent); background:var(--accent-soft);
+  padding:13px 16px; margin:0 0 18px; border-radius:0 5px 5px 0;
+}
+.note.warn{border-left-color:var(--warn); background:var(--warn-soft)}
+.note.bad{border-left-color:var(--bad); background:var(--bad-soft)}
+.note p:last-child{margin-bottom:0}
+.note .tag{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  font-weight:600; display:block; margin-bottom:5px; color:var(--accent-ink);
+}
+.note.warn .tag{color:var(--warn)}
+.note.bad .tag{color:var(--bad)}
+
+.keystone{
+  border:1px solid var(--rule); border-left:3px solid var(--ink);
+  background:var(--card); padding:16px 18px; margin:0 0 18px; border-radius:0 6px 6px 0;
+  box-shadow:var(--shadow);
+}
+.keystone p{font-family:var(--serif); font-size:17px; line-height:1.5; margin:0}
+
+/* ---------- state pills ---------- */
+.pill{
+  display:inline-block; font-family:var(--mono); font-size:11.5px; padding:1.5px 7px;
+  border-radius:20px; border:1px solid currentColor; white-space:nowrap;
+}
+.pill.good{color:var(--good); background:var(--good-soft)}
+.pill.warn{color:var(--warn); background:var(--warn-soft)}
+.pill.bad{color:var(--bad); background:var(--bad-soft)}
+.pill.flat{color:var(--muted); background:var(--rule-2)}
+
+/* ---------- three-column mechanism compare ---------- */
+.trio{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:0 0 20px}
+@media (max-width:760px){.trio{grid-template-columns:minmax(0,1fr)}}
+.mech{border:1px solid var(--rule); border-radius:6px; background:var(--card); padding:15px 16px}
+.mech h4{margin:0 0 8px; font-size:14.5px; color:var(--ink)}
+.mech .cost{
+  font-family:var(--mono); font-size:11.5px; color:var(--muted);
+  border-top:1px dashed var(--rule); margin-top:11px; padding-top:9px; display:block;
+}
+.mech ol{padding-left:18px; margin:0; font-size:13.6px}
+
+/* ---------- chart ---------- */
+figure{margin:0 0 22px}
+figcaption{font-size:13px; color:var(--muted); margin-top:9px; font-family:var(--sans)}
+.chart-wrap{
+  border:1px solid var(--rule); border-radius:6px; background:var(--card);
+  padding:18px 14px 10px; overflow-x:auto;
+}
+svg{display:block; max-width:100%}
+
+/* ---------- state machine ---------- */
+.sm{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:0 0 18px; font-family:var(--mono); font-size:13px}
+.sm .st{border:1px solid var(--rule); background:var(--card); padding:6px 12px; border-radius:4px}
+.sm .ar{color:var(--muted)}
+
+/* ---------- q&a ---------- */
+details{
+  border:1px solid var(--rule); border-radius:6px; background:var(--card);
+  padding:0; margin:0 0 10px; overflow:hidden;
+}
+summary{
+  cursor:pointer; padding:12px 16px; font-weight:600; font-size:15px; list-style:none;
+  display:flex; gap:10px; align-items:baseline;
+}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸"; color:var(--accent); font-size:12px; flex:none}
+details[open] summary::before{content:"▾"}
+details[open] summary{border-bottom:1px solid var(--rule-2)}
+.answer{padding:14px 16px 4px}
+.answer p:last-child{margin-bottom:0}
+summary:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+
+/* ---------- misc ---------- */
+.lede{font-size:17px; color:var(--ink-2); max-width:64ch}
+.kv{display:grid; grid-template-columns:minmax(120px,auto) minmax(0,1fr); gap:5px 18px; font-size:14.5px; margin:0 0 18px}
+.kv dt{font-family:var(--mono); font-size:12.5px; color:var(--muted); padding-top:3px}
+.kv dd{margin:0}
+hr{border:0; border-top:1px solid var(--rule); margin:34px 0}
+.footnote{font-size:13.5px; color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<nav class="toc" aria-label="Contents">
+  <p class="toc-brand">Holdfast</p>
+  <p class="toc-sub">Field Manual</p>
+  <div class="toc-sep">Foundations</div>
+  <ol>
+    <li><a href="#thesis">What it is, and the one claim</a></li>
+    <li><a href="#contract">The correctness contract</a></li>
+    <li><a href="#schema">Data model and schema</a></li>
+    <li><a href="#outcomes">The outcome vocabulary</a></li>
+  </ol>
+  <div class="toc-sep">M1 — contention</div>
+  <ol start="5">
+    <li><a href="#mechanisms">Three mechanisms</a></li>
+    <li><a href="#harness">The harness that tried to lie</a></li>
+    <li><a href="#numbers">The measured crossover</a></li>
+    <li><a href="#disproved">The hypothesis the data killed</a></li>
+  </ol>
+  <div class="toc-sep">M2 — retries</div>
+  <ol start="9">
+    <li><a href="#retry-problem">One person seen twice</a></li>
+    <li><a href="#claim-first">Claim-first, and why order is the mechanism</a></li>
+    <li><a href="#memoize">What may be memoized</a></li>
+    <li><a href="#pair-test">The 1,000-pair overlap proof</a></li>
+  </ol>
+  <div class="toc-sep">M4 — time</div>
+  <ol start="13">
+    <li><a href="#holds">Expiring holds</a></li>
+    <li><a href="#open-edges">Open edges in <code>hold.go</code></a></li>
+  </ol>
+  <div class="toc-sep">Ahead &amp; around</div>
+  <ol start="15">
+    <li><a href="#remaining">M5 and M6</a></li>
+    <li><a href="#debts">Debts, drift and traps</a></li>
+    <li><a href="#defend">Defending it out loud</a></li>
+    <li><a href="#glossary">Glossary</a></li>
+    <li><a href="#runbook">Runbook</a></li>
+  </ol>
+</nav>
+
+<main>
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Holdfast · Correctness under contention</p>
+  <h1>Holdfast Field Manual</h1>
+  <p class="standfirst">A complete reference to the booking engine: the contract it holds, the three
+  mechanisms measured against each other, the harness that had to be fixed three times before it told
+  the truth, and the exact state of the work in progress.</p>
+  <div class="meta">
+    <span>Go · PostgreSQL 16 · pgx v5</span>
+    <span>M0–M2 complete · M4 in progress</span>
+    <span>Reference built 2026-09-22</span>
+  </div>
+</header>
+
+<h2 id="thesis"><span class="num">01</span>What it is, and the one claim</h2>
+
+<p class="lede">Holdfast is a seat-booking engine. Booking seats is not the point. The point is a single
+property, held under conditions that break the naive version of this code everywhere it is written.</p>
+
+<div class="keystone">
+  <p>Concurrent requests can never double-sell the same seat, and never lie about the outcome — no
+  overselling, no false “sold out,” and a retried request always resolves to exactly one booking.</p>
+</div>
+
+<p>Every claim in that sentence is backed by a test that would fail if the claim were false. That is the
+distinction the whole project turns on: the guarantee is <strong>measured</strong>, not asserted.</p>
+
+<p>The problem is not invented. The naive <em>check availability, then book</em> pattern — with no unique
+constraint and no lock or transaction around the insert — is a live race condition found in production
+code at work. Holdfast is the version that is actually correct, with the test that proves it.</p>
+
+<h3>The layered structure, on purpose</h3>
+
+<p>The milestones are not features. Each one introduces a <em>different reason the system could be
+wrong</em>, even when every earlier reason has been handled:</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Milestone</th><th>New failure dimension</th><th>State</th></tr></thead>
+  <tbody>
+    <tr><td><strong>M0</strong> contract</td><td>Ambiguity — what does “correct” even mean here</td><td><span class="pill good">done</span></td></tr>
+    <tr><td><strong>M1</strong> mechanism shootout</td><td>Concurrency — two requests, one seat, one instant</td><td><span class="pill good">done</span></td></tr>
+    <tr><td><strong>M2</strong> retry safety</td><td>Ambiguity of outcome — the answer was lost in flight</td><td><span class="pill good">done</span></td></tr>
+    <tr><td><strong>M4</strong> expiring holds</td><td>Time — a hold expires at the instant it is confirmed</td><td><span class="pill warn">in progress</span></td></tr>
+    <tr><td><strong>M5</strong> multi-instance</td><td>Distribution — N replicas racing for one inventory</td><td><span class="pill flat">planned</span></td></tr>
+    <tr><td><strong>M6</strong> load + overload</td><td>Saturation — what happens past the ceiling</td><td><span class="pill flat">planned · ship line</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="footnote">M3 (product wrapper), M7 (Kubernetes), M8 (observability) and M9 (demo) are in
+<code>PLAN.md</code> but are off the critical path. M6 is the ship line: M7/M8 are decoration on a
+finished thing, and M9 folds into M6.</p>
+
+<h2 id="contract"><span class="num">02</span>The correctness contract</h2>
+
+<p>Written in plain English before any code existed. Four guarantees, verbatim from
+<code>docs/M0-contract.md</code>. Everything downstream is an attempt to keep them.</p>
+
+<h4>Guarantee 1 — no oversell, no undersell</h4>
+<p>No matter how many requests come in — be it 5,000 — only 100 tickets are booked. Nothing is
+undersold, nothing is oversold. <strong>Exactly N. Not <code>&gt;</code>, not <code>&lt;</code>.</strong></p>
+
+<h4>Guarantee 2 — no false rejection</h4>
+<p>The system will not return a “no tickets” error while tickets remain. If the ticket is available at
+the time of the write, the booking is done.</p>
+
+<h4>Guarantee 3 — no imaginary reads</h4>
+<p>A read is never a made-up number — always a snapshot of the real tickets sold and left at that moment.</p>
+
+<h4>Guarantee 4 — retries are retries</h4>
+<p>If a booking commits but the response is lost before the client sees it, and the client sends the
+same request again, the system treats it as a retry, not a new request: no second booking is created,
+and the retry receives the outcome of the original attempt — <em>whatever that outcome was</em>.</p>
+
+<div class="note">
+  <span class="tag">Why Guarantee 1 is two-sided</span>
+  <p>Most implementations only defend against overselling. Underselling is equally a bug and much
+  harder to notice: a user who is told “sold out” while a seat sits free never files a report, they
+  just leave. The contract names both because only naming both forces a test that can catch both.</p>
+</div>
+
+<div class="note warn">
+  <span class="tag">The trap inside “exactly N”</span>
+  <p>A totals check can pass while the system is broken. With 100 seats you can observe exactly 100
+  bookings where seat 14 was sold twice and seat 15 was never sold. Totals net out; correctness does
+  not. This is why the harness asks the database directly —
+  <code>GROUP BY seat_id HAVING count(*) &gt; 1</code> — instead of trusting a count.</p>
+</div>
+
+<h2 id="schema"><span class="num">03</span>Data model and schema</h2>
+
+<h3>Row-per-seat, and why that choice came first</h3>
+
+<p>A seat is a row. The alternative — one row per event carrying a <code>seats_remaining</code> counter —
+was rejected for a reason specific to this project:</p>
+
+<div class="keystone">
+  <p>Row-per-seat is the only schema in which all three mechanisms can coexist and be compared fairly.
+  A unique constraint polices <em>row existence</em>, not a number counting down inside one row — a
+  counter schema would have silently excluded one of the three contestants from the shootout.</p>
+</div>
+
+<p>That is a benchmark-design decision made before any benchmarking, and it is the kind of thing worth
+being able to say out loud: the arena was chosen so that the contest was fair.</p>
+
+<h3>The four migrations</h3>
+
+<span class="code-label">migrations/001_init.sql</span>
+<pre><code>CREATE TABLE events (
+    id          BIGSERIAL PRIMARY KEY,
+    name        TEXT NOT NULL,
+    total_seats INT  NOT NULL CHECK (total_seats &gt; 0)
+);
+
+CREATE TABLE seats (
+    id       BIGSERIAL PRIMARY KEY,
+    event_id BIGINT NOT NULL REFERENCES events (id),
+    label    TEXT   NOT NULL,
+    UNIQUE (event_id, label)
+);
+
+CREATE TABLE bookings (
+    id         BIGSERIAL PRIMARY KEY,
+    event_id   BIGINT NOT NULL REFERENCES events (id),
+    seat_id    BIGINT NOT NULL REFERENCES seats (id),
+    customer   TEXT NOT NULL,
+    request_id TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (event_id, seat_id)   -- &lt;- mechanism 2 lives in this line
+)</code></pre>
+
+<span class="code-label">migrations/002_cas_status.sql</span>
+<pre><code>ALTER TABLE seats ADD COLUMN status TEXT NOT NULL DEFAULT 'free';</code></pre>
+
+<span class="code-label">migrations/003_idempotency.sql</span>
+<pre><code>CREATE TABLE request_lookup(
+    request_id TEXT NOT NULL PRIMARY KEY,   -- &lt;- the claim; uniqueness + index in one line
+    outcome    TEXT NULL,                   -- NULL = "claimed, still running"
+    seat_id    BIGINT NOT NULL REFERENCES seats(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+)</code></pre>
+
+<span class="code-label">migrations/004_holds.sql</span>
+<pre><code>ALTER TABLE seats
+ADD COLUMN held_by    TEXT NULL,
+ADD COLUMN held_until TIMESTAMPTZ NULL,
+ADD CONSTRAINT held_requires_holder
+    CHECK (status &lt;&gt; 'held' OR (held_by IS NOT NULL AND held_until IS NOT NULL));</code></pre>
+
+<div class="note">
+  <span class="tag">Read that CHECK constraint again</span>
+  <p><code>held_requires_holder</code> makes an <em>illegal state unrepresentable in the database</em>.
+  A seat can never be <code>held</code> by nobody, or held with no deadline — not because application
+  code is careful, but because Postgres will refuse the row. Application care is a habit; a constraint
+  is a guarantee. This is the same move as the <code>UNIQUE</code> on <code>request_id</code>: push the
+  invariant down to where it cannot be forgotten.</p>
+</div>
+
+<h3>The seat state machine</h3>
+
+<div class="sm">
+  <span class="st">free</span><span class="ar">→</span>
+  <span class="st">held</span><span class="ar">→</span>
+  <span class="st">booked</span>
+</div>
+<div class="sm">
+  <span class="st">held</span><span class="ar">— <code>held_until &lt; now()</code> →</span>
+  <span class="st">free (implicitly)</span>
+</div>
+
+<p>The expiry transition is the subtle one, and the design choice inside it matters:
+<strong>expiry is not an event, it is a predicate.</strong> No background job flips a seat back to
+<code>free</code>. A seat whose <code>held_until</code> has passed is treated as available by the
+<code>WHERE</code> clause of the next request that wants it:</p>
+
+<pre><code>WHERE id = $2 AND (status='free' OR (status='held' AND held_until &lt; now()))</code></pre>
+
+<div class="note">
+  <span class="tag">Why the database owns the clock</span>
+  <p>The authoritative expiry decision lives in a database timestamp compared against the database's
+  <code>now()</code>, not in an application timer. Only one of those survives a pod death. An
+  in-process <code>time.AfterFunc</code> holding a seat's release is a guarantee that evaporates when
+  the process does — and it also disagrees with every other replica's clock in M5. Make the database
+  the single clock and the reaper becomes an optimisation, not a correctness requirement.</p>
+</div>
+
+<h2 id="outcomes"><span class="num">04</span>The outcome vocabulary</h2>
+
+<p>Nine values in <code>booking.Outcome</code>. The vocabulary is doing real work: an enum forces every
+path to end in a named, defensible answer rather than a boolean and a shrug.</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Constant</th><th>Wire value</th><th>Means</th></tr></thead>
+  <tbody>
+    <tr><td><code>OutcomeBooked</code></td><td><code>booked</code></td><td>Seat confirmed for this customer</td></tr>
+    <tr><td><code>OutcomeSeatTaken</code></td><td><code>seat_taken</code></td><td>Someone else already holds it</td></tr>
+    <tr><td><code>OutcomeSoldOut</code></td><td><code>sold_out</code></td><td>No seats left at all (matters for “any seat” requests)</td></tr>
+    <tr><td><code>OutcomeAlreadyMine</code></td><td><code>already_mine</code></td><td>This exact request already succeeded — a retry. <strong>Guarantee 4.</strong></td></tr>
+    <tr><td><code>OutcomeSystemError</code></td><td><code>system_error</code></td><td>Something failed that is not the caller's fault</td></tr>
+    <tr><td><code>OutcomeClientSideError</code></td><td><code>client_error</code></td><td>Same <code>request_id</code> reused for a <em>different</em> seat — a client bug</td></tr>
+    <tr><td><code>OutcomeHoldGranted</code></td><td><code>hold_granted</code></td><td>Hold acquired, with a <code>held_until</code> attached</td></tr>
+    <tr><td><code>OutcomeHoldActive</code></td><td><code>hold_active</code></td><td>Caller already holds it and is still inside the window</td></tr>
+    <tr><td><code>OutcomeHoldExpired</code></td><td><code>hold_expired</code></td><td>The hold lapsed before confirmation</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>There is also a <code>SeatStatus</code> enum — <code>free</code>, <code>booked</code>,
+<code>held</code> — used everywhere instead of string literals. The comment in the source states the
+reason plainly: a typo in a hand-typed <code>"free"</code> inside a compare-and-swap predicate does not
+throw. It silently never matches, and the mechanism quietly stops working while every test that checks
+for <em>overselling</em> still passes.</p>
+
+<h2 id="mechanisms"><span class="num">05</span>Three mechanisms</h2>
+
+<p>Three ways to make a seat claim atomic in Postgres, all three correct, implemented behind one
+signature so the same harness can attack any of them:</p>
+
+<pre><code>type bookFunc func(ctx context.Context, pool *pgxpool.Pool,
+    eventID, seatID int64, customer, requestID string) (Outcome, int, error)</code></pre>
+
+<p>The middle return value is the retry count — it exists because only one of the three mechanisms can
+produce retries, and the harness needs to see that difference.</p>
+
+<div class="trio">
+  <div class="mech">
+    <h4>1 · Pessimistic row lock</h4>
+    <ol>
+      <li><code>BEGIN</code></li>
+      <li><code>SELECT … FOR UPDATE</code> on the seat row</li>
+      <li>Check <code>bookings</code> under the lock</li>
+      <li>Free → <code>INSERT</code>; taken → <code>seat_taken</code></li>
+      <li><code>COMMIT</code> releases</li>
+    </ol>
+    <span class="cost">Loser pays: time queued behind the row.</span>
+  </div>
+  <div class="mech">
+    <h4>2 · Unique constraint</h4>
+    <ol>
+      <li>Look up <code>request_id</code> in <code>bookings</code></li>
+      <li>Found → <code>already_mine</code></li>
+      <li>Else fire the <code>INSERT</code></li>
+      <li><code>23505</code> → <code>seat_taken</code></li>
+    </ol>
+    <span class="cost">Loser pays: a full INSERT that Postgres rejects.</span>
+  </div>
+  <div class="mech">
+    <h4>3 · Compare-and-swap</h4>
+    <ol>
+      <li>Claim <code>request_id</code> first</li>
+      <li>Read <code>seats.status</code></li>
+      <li><code>UPDATE … WHERE status='free'</code></li>
+      <li>0 rows → re-read, loop</li>
+      <li><code>INSERT</code> booking, record outcome, commit</li>
+    </ol>
+    <span class="cost">Loser pays: one cheap read, then exits.</span>
+  </div>
+</div>
+
+<div class="keystone">
+  <p>All three produce exactly one winner. They are identical in correctness and completely different
+  in what a <em>loser</em> costs — and since almost every request in a flash sale is a loser, the cost
+  of losing <em>is</em> the performance of the system.</p>
+</div>
+
+<h3>Mechanism 1 — the row lock, in full</h3>
+
+<pre><code>tx, err := pool.Begin(ctx)
+defer tx.Rollback(ctx) // safety net; harmless no-op after a successful Commit
+
+// lock the seat row — just the lock, nothing else
+err = tx.QueryRow(ctx, "SELECT id from seats WHERE id = $1 FOR UPDATE", seatID).Scan(&amp;lockedSeat)
+
+// under the lock, ask whether it is already booked
+err = tx.QueryRow(ctx, "SELECT id from bookings WHERE seat_id = $1", seatID).Scan(&amp;existingBooking)
+if err == nil { return OutcomeSeatTaken, 0, nil }
+if !errors.Is(err, pgx.ErrNoRows) { return OutcomeSystemError, 0, err }
+
+_, err = tx.Exec(ctx, "INSERT INTO bookings (...) VALUES ($1,$2,$3,$4)", ...)
+err = tx.Commit(ctx) // releases the lock</code></pre>
+
+<p><strong>What makes it correct:</strong> <code>FOR UPDATE</code> takes an exclusive lock on the seat
+row. A second transaction reaching the same line blocks until the first commits or rolls back. By the
+time it reads <code>bookings</code>, the winner's row is visible. The check-then-act gap is closed by
+serialising the two competitors, so there is no gap to race in.</p>
+
+<p><strong>The property that hurts it:</strong> losers <em>queue</em>. One slow holder at the front of
+the line delays everyone behind it — head-of-line blocking. Fewer seats means more requests behind the
+same row, so the cost grows precisely as contention rises.</p>
+
+<p class="footnote"><code>defer tx.Rollback(ctx)</code> before any early return is the idiom that makes
+the nine possible exit paths safe. Rollback after a successful commit is a no-op, so one deferred line
+covers every failure exit without a single explicit rollback call.</p>
+
+<h3>Mechanism 2 — the unique constraint, in full</h3>
+
+<pre><code>err := pool.QueryRow(ctx, "SELECT seat_id FROM bookings WHERE request_id = $1", requestID).Scan(&amp;foundSeat)
+if err == nil { return OutcomeAlreadyMine, 0, nil }
+if !errors.Is(err, pgx.ErrNoRows) { return OutcomeSystemError, 0, err }
+
+_, err = pool.Exec(ctx, "INSERT INTO bookings (...) VALUES ($1,$2,$3,$4)", ...)
+if err != nil {
+    var pgErr *pgconn.PgError
+    if errors.As(err, &amp;pgErr) &amp;&amp; pgErr.Code == "23505" {
+        return OutcomeSeatTaken, 0, nil   // the constraint did the work
+    }
+    return OutcomeSystemError, 0, err
+}
+return OutcomeBooked, 0, nil</code></pre>
+
+<p><strong>What makes it correct:</strong> <code>UNIQUE (event_id, seat_id)</code> on
+<code>bookings</code>. Two concurrent inserts for one seat cannot both land; the storage engine
+serialises on the index entry and rejects the second with SQLSTATE <code>23505</code>
+(<em>unique_violation</em>). Note it needs <strong>no explicit transaction at all</strong> — a single
+statement is its own transaction, and the constraint is the whole mechanism.</p>
+
+<p><strong>The property that hurts it:</strong> the loser's exit is not cheap. It fires a real
+<code>INSERT</code>, Postgres parses it, plans it, attempts the index write, detects the collision, and
+rolls it back. That is real work burned for zero bookings, and it happens on nearly every request.</p>
+
+<div class="note">
+  <span class="tag">Idiom worth memorising</span>
+  <p><code>errors.As(err, &amp;pgErr) &amp;&amp; pgErr.Code == "23505"</code> is how you distinguish
+  “this failed because someone beat me” from “this failed because the database is broken.” Treating
+  both the same way is how a race condition gets reported as an outage — and how a genuine outage gets
+  reported as a lost race.</p>
+</div>
+
+<h3>Mechanism 3 — compare-and-swap, in full</h3>
+
+<p>The one that carries the most design. It is also the one M2 built on, so read it alongside
+<a href="#claim-first">§10</a>.</p>
+
+<pre><code>tx, _ := pool.Begin(ctx)
+defer tx.Rollback(ctx)
+
+// --- the claim (M2) — a SAVEPOINT, so a 23505 here does not poison the outer tx
+txc, _ := tx.Begin(ctx)
+_, err = txc.Exec(ctx, "INSERT INTO request_lookup (request_id,seat_id) VALUES ($1,$2)", requestID, seatID)
+if err != nil {
+    if pgErr.Code == "23505" {
+        txc.Rollback(ctx)                       // roll back ONLY the savepoint
+        // read the original decision back and return it
+        tx.QueryRow(ctx, "SELECT outcome,seat_id FROM request_lookup WHERE request_id = $1", requestID).
+            Scan(&amp;outcome, &amp;storedSeatID)
+        if seatID != storedSeatID { return OutcomeClientSideError, retries, nil }
+        if outcome == string(OutcomeBooked) { return OutcomeAlreadyMine, retries, nil }
+        return Outcome(outcome), retries, nil
+    }
+    return OutcomeSystemError, retries, err
+}
+txc.Commit(ctx)                                  // release the savepoint
+
+// --- the CAS loop
+for {
+    tx.QueryRow(ctx, "SELECT status from seats WHERE id = $1", seatID).Scan(&amp;freeSeat)
+    if freeSeat == string(SeatStatusBooked) {
+        tx.Exec(ctx, "UPDATE request_lookup SET outcome = $1 WHERE request_id = $2", OutcomeSeatTaken, requestID)
+        tx.Commit(ctx)
+        return OutcomeSeatTaken, retries, nil
+    }
+    newSeat, _ := tx.Exec(ctx,
+        "UPDATE seats SET status = $1 WHERE id = $2 AND status = $3",
+        SeatStatusBooked, seatID, SeatStatusFree)
+    if newSeat.RowsAffected() &gt; 0 { break }      // we won
+    retries++
+}
+
+tx.Exec(ctx, "INSERT INTO bookings (...) VALUES ($1,$2,$3,$4)", ...)
+tx.Exec(ctx, "UPDATE request_lookup SET outcome = $1 WHERE request_id = $2", OutcomeBooked, requestID)
+tx.Commit(ctx)
+return OutcomeBooked, retries, nil</code></pre>
+
+<h4>The three things to understand in that code</h4>
+
+<p><strong>1. <code>RowsAffected()</code> is the compare-and-swap.</strong> The <code>UPDATE</code>
+carries its own precondition in the <code>WHERE</code> clause: <em>change this row to booked, but only
+if it is still free</em>. Postgres evaluates the predicate and performs the write as one atomic
+operation — there is no window between checking and acting, because they are the same statement. If
+someone else got there first, the predicate fails, zero rows change, and <code>RowsAffected()</code>
+returns 0. That return value <em>is</em> the answer to “did I win?”</p>
+
+<p><strong>2. The nested <code>tx.Begin</code> is a savepoint, not a second transaction.</strong> In
+pgx, calling <code>Begin</code> on an existing transaction issues <code>SAVEPOINT</code>. This matters
+enormously: in Postgres, <em>any</em> error inside a transaction poisons it — every subsequent statement
+fails with <code>current transaction is aborted</code> until you roll back. The <code>23505</code> from
+the claim insert is an <em>expected</em> event, not a failure, so it must not destroy the transaction
+that still has to read the stored outcome. The savepoint scopes the damage: roll back to the savepoint
+and the outer transaction is healthy again.</p>
+
+<p><strong>3. The loop exists because CAS can lose without being wrong.</strong> Zero rows affected does
+not mean “taken” — it means “state changed under me.” The seat could have been booked, or it could have
+gone <code>free → held → free</code> while this request was reading. So the loop re-reads, decides, and
+either exits with an answer or tries again. <em>That loop is the retry rate the benchmark measures.</em></p>
+
+<h2 id="harness"><span class="num">06</span>The harness that tried to lie</h2>
+
+<p>The mechanisms are short. The harness is the real work, and it is where most of the two weeks went.</p>
+
+<h3>The arena</h3>
+
+<pre><code>TRUNCATE bookings, seats, events, request_lookup RESTART IDENTITY CASCADE
+INSERT INTO events (name, total_seats) VALUES ('racefest', $1)
+-- then N seats, labelled seat-0 … seat-(N-1)</code></pre>
+
+<p>Every run starts from a clean arena. <code>RESTART IDENTITY</code> resets the sequences so ids are
+comparable across runs; <code>CASCADE</code> handles the foreign keys.</p>
+
+<h3>The attack</h3>
+
+<dl class="kv">
+  <dt>attackers</dt><dd>30,000 goroutines</dd>
+  <dt>batches</dt><dd>3 × 10,000, with a 6-second gap between them</dd>
+  <dt>seat pools</dt><dd>10,000 → 1,000 → 100 → 10 (contention rising)</dd>
+  <dt>skew</dt><dd>80% of requests target the first 20% of seats</dd>
+  <dt>pool</dt><dd><code>pool_max_conns=90</code> — about 111 requests per connection</dd>
+  <dt>release</dt><dd><code>close(start)</code> — one starting gun, all goroutines at once</dd>
+</dl>
+
+<pre><code>results := make([]FlashSale, attackers)   // results[i] written only by goroutine i
+for j := 0; j &lt; 3; j++ {
+    start := make(chan struct{})
+    for i := 10000 * j; i &lt; 10000*(j+1); i++ {
+        go func(i int) {
+            &lt;-start                        // every goroutine parks here
+            if rand.Float64() &lt; 0.8 {
+                seatID = rand.Intn(rangeLow)                 // the hot 20%
+            } else {
+                seatID = rand.Intn(rangeHigh) + rangeLow     // the cold tail
+            }
+            ...
+        }(i)
+    }
+    close(start)                           // the starting gun
+    time.Sleep(time.Second * 6)
+}</code></pre>
+
+<div class="note">
+  <span class="tag">Two Go details that are load-bearing</span>
+  <p><strong><code>results[i]</code> needs no mutex.</strong> Each goroutine writes exactly one slot it
+  alone owns. Distinct elements of a slice are distinct memory; there is no shared write. Adding a lock
+  here would not make it safer, it would make the benchmark measure the lock.</p>
+  <p><strong><code>close(start)</code> is the starting gun.</strong> Closing a channel unblocks every
+  receiver simultaneously. Sending 10,000 values would release them one at a time — which is exactly
+  one of the three ways this harness lied (below).</p>
+</div>
+
+<h3>The four assertions</h3>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Check</th><th>Asks</th><th>Catches</th></tr></thead>
+  <tbody>
+    <tr><td><strong>1</strong></td><td>Bookings within <code>[rangeLow, seatCount]</code></td><td>Gross over- or under-selling</td></tr>
+    <tr><td><strong>2</strong></td><td><code>system_error == 0</code></td><td>Crashes dressed up as losses</td></tr>
+    <tr><td><strong>3a</strong></td><td>DB row count == clients told <code>booked</code></td><td>The system lying to a user</td></tr>
+    <tr><td><strong>3b</strong></td><td><code>GROUP BY seat_id HAVING count(*) &gt; 1</code></td><td><strong>A double-sold seat masked by an unsold one</strong></td></tr>
+    <tr><td><strong>retry</strong></td><td>Re-run every request with the same <code>request_id</code></td><td>Guarantee 4 violations</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Check <strong>3a</strong> is the reconciliation that most test suites never write: it compares what
+the <em>clients were told</em> against what the <em>database holds</em>. A system can be internally
+consistent and still lie to users; only comparing the two surfaces catches it.</p>
+
+<p>Check <strong>3b</strong> exists because of the trap in Guarantee 1 — totals can net out. Asking the
+database for duplicate seat ids is the only check that cannot be fooled by compensating errors.</p>
+
+<h3>The three times the harness lied</h3>
+
+<p>This is the most transferable part of the entire milestone, and the part worth leading with when
+someone asks what was hard. Each of these produced numbers that looked <em>completely reasonable</em>
+and meant nothing.</p>
+
+<div class="note bad">
+  <span class="tag">Lie 1 — overlapping batches</span>
+  <p>Batches were not fully draining before the next started, so contention from one run bled into the
+  next. Fix: the 6-second gap between releases.</p>
+</div>
+<div class="note bad">
+  <span class="tag">Lie 2 — serialised release</span>
+  <p>Goroutines were being released one at a time rather than together, so nothing actually raced. The
+  benchmark was measuring sequential throughput and calling it contention. Fix:
+  <code>close(start)</code>.</p>
+</div>
+<div class="note bad">
+  <span class="tag">Lie 3 — the contest ended before it began</span>
+  <p>With a single seat, the whole contest resolved in about five milliseconds — long before enough
+  competitors had arrived to contend at all. Fix: <code>setupArena</code> was changed to create many
+  seats, and the pool became the independent variable.</p>
+</div>
+
+<div class="keystone">
+  <p>Knowing which mechanism is faster matters far less than knowing whether your measurement is
+  telling you the truth.</p>
+</div>
+
+<h2 id="numbers"><span class="num">07</span>The measured crossover</h2>
+
+<p>p99 latency in seconds, batch 3. Lower is better; the winner in each row is highlighted.</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Seat pool</th><th class="num">CAS</th><th class="num">Unique constraint</th><th class="num">Row lock</th></tr></thead>
+  <tbody>
+    <tr><td>10,000</td><td class="num">4.67</td><td class="num">6.32</td><td class="num win">2.63</td></tr>
+    <tr><td>1,000</td><td class="num">2.37</td><td class="num">5.09</td><td class="num win">2.34</td></tr>
+    <tr><td>100</td><td class="num win">2.01</td><td class="num">5.16</td><td class="num">2.56</td></tr>
+    <tr><td>10</td><td class="num win">2.03</td><td class="num">4.19</td><td class="num">3.77</td></tr>
+  </tbody>
+</table>
+</div>
+
+<figure>
+<div class="chart-wrap">
+<svg viewBox="0 0 640 330" role="img" aria-label="Line chart of p99 latency in seconds for three mechanisms as the seat pool shrinks from 10,000 to 10. The row lock rises from 2.63 to 3.77 while CAS falls from 4.67 to 2.03, crossing between the 1,000 and 100 seat pools.">
+  <!-- grid -->
+  <g stroke="var(--rule)" stroke-width="1">
+    <line x1="62" y1="272" x2="612" y2="272"/>
+    <line x1="62" y1="218" x2="612" y2="218" stroke="var(--rule-2)"/>
+    <line x1="62" y1="164" x2="612" y2="164" stroke="var(--rule-2)"/>
+    <line x1="62" y1="110" x2="612" y2="110" stroke="var(--rule-2)"/>
+    <line x1="62" y1="56"  x2="612" y2="56"  stroke="var(--rule-2)"/>
+  </g>
+  <!-- y labels: 0,2,4,6,8 seconds -> y 272,218,164,110,56 -->
+  <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)" text-anchor="end">
+    <text x="54" y="276">0</text>
+    <text x="54" y="222">2</text>
+    <text x="54" y="168">4</text>
+    <text x="54" y="114">6</text>
+    <text x="54" y="60">8</text>
+  </g>
+  <text x="20" y="168" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="var(--muted)" transform="rotate(-90 20 168)" text-anchor="middle">p99 latency (s)</text>
+  <!-- x labels at 110, 270, 430, 580 -->
+  <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)" text-anchor="middle">
+    <text x="110" y="292">10,000</text>
+    <text x="270" y="292">1,000</text>
+    <text x="430" y="292">100</text>
+    <text x="580" y="292">10</text>
+  </g>
+  <text x="337" y="315" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="var(--muted)" text-anchor="middle">seat pool — contention increases to the right</text>
+
+  <!-- constraint: 6.32,5.09,5.16,4.19 -> y = 272 - v*27 -->
+  <polyline fill="none" stroke="var(--bad)" stroke-width="2.5" stroke-dasharray="6 4"
+    points="110,101 270,135 430,133 580,159"/>
+  <g fill="var(--bad)">
+    <circle cx="110" cy="101" r="4"/><circle cx="270" cy="135" r="4"/>
+    <circle cx="430" cy="133" r="4"/><circle cx="580" cy="159" r="4"/>
+  </g>
+  <!-- row lock: 2.63,2.34,2.56,3.77 -->
+  <polyline fill="none" stroke="var(--warn)" stroke-width="2.5"
+    points="110,201 270,209 430,203 580,170"/>
+  <g fill="var(--warn)">
+    <circle cx="110" cy="201" r="4"/><circle cx="270" cy="209" r="4"/>
+    <circle cx="430" cy="203" r="4"/><circle cx="580" cy="170" r="4"/>
+  </g>
+  <!-- CAS: 4.67,2.37,2.01,2.03 -->
+  <polyline fill="none" stroke="var(--accent)" stroke-width="2.5"
+    points="110,146 270,208 430,218 580,217"/>
+  <g fill="var(--accent)">
+    <circle cx="110" cy="146" r="4"/><circle cx="270" cy="208" r="4"/>
+    <circle cx="430" cy="218" r="4"/><circle cx="580" cy="217" r="4"/>
+  </g>
+
+  <!-- crossover marker between 270 and 430 -->
+  <line x1="350" y1="40" x2="350" y2="272" stroke="var(--ink-2)" stroke-width="1" stroke-dasharray="3 4" opacity=".5"/>
+  <text x="356" y="44" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="var(--ink-2)">the crossover</text>
+
+  <!-- legend -->
+  <g font-family="IBM Plex Sans, sans-serif" font-size="12">
+    <line x1="80" y1="20" x2="104" y2="20" stroke="var(--accent)" stroke-width="2.5"/>
+    <text x="110" y="24" fill="var(--ink-2)">CAS</text>
+    <line x1="170" y1="20" x2="194" y2="20" stroke="var(--warn)" stroke-width="2.5"/>
+    <text x="200" y="24" fill="var(--ink-2)">Row lock</text>
+    <line x1="280" y1="20" x2="304" y2="20" stroke="var(--bad)" stroke-width="2.5" stroke-dasharray="6 4"/>
+    <text x="310" y="24" fill="var(--ink-2)">Unique constraint</text>
+  </g>
+</svg>
+</div>
+<figcaption>The row lock starts lowest and rises as the pool shrinks. CAS starts high and falls. They
+cross between the 1,000-seat and 100-seat pools. That crossing is the finding.</figcaption>
+</figure>
+
+<h3>What the shape means</h3>
+
+<div class="keystone">
+  <p>There is no single best mechanism. The row lock wins when demand is spread out; compare-and-swap
+  wins when it concentrates on a few hot seats; the unique constraint never wins.</p>
+</div>
+
+<p>Two claims live in that table and they land on <em>different mechanisms</em> — worth keeping
+separate, because conflating them is the easiest way to misreport the result:</p>
+
+<ul>
+  <li><strong>“Slowest at every level”</strong> is the unique constraint. It is the highest number in all
+  four rows.</li>
+  <li><strong>“The only one that degrades under contention”</strong> is the row lock: 2.63 → 3.77. The
+  constraint actually <em>improves</em>, 6.32 → 4.19.</li>
+</ul>
+
+<p>The explanation is the cost of losing. The row lock's losers queue on the same row, and the queue
+grows as seats become scarce. The constraint's losers each fire a rejected write regardless. CAS's
+losers read once and leave — and as contention rises, more of them take that cheap path earlier.</p>
+
+<p class="footnote">Reproduced across independent runs. Max request time and p99 were close together,
+so the requests were fairly evenly timed rather than dominated by a few outliers.</p>
+
+<h2 id="disproved"><span class="num">08</span>The hypothesis the data killed</h2>
+
+<p>The first written explanation was: <em>the constraint slows down because more inserts fail as seats
+get scarce.</em> It is intuitive, it fits the mechanism, and it is wrong. The project's own numbers
+contradict it.</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Seat pool</th><th class="num">Failed inserts</th><th class="num">Committed inserts</th><th class="num">Constraint p99</th></tr></thead>
+  <tbody>
+    <tr><td>10,000</td><td class="num">~20,000</td><td class="num">10,000</td><td class="num">6.32 s</td></tr>
+    <tr><td>10</td><td class="num">~29,990</td><td class="num">10</td><td class="num">4.19 s</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Failures go up while latency goes down.</strong> Failed writes therefore cannot be what drives
+it. What moves in the same direction as the latency is the number of <em>committed</em> inserts:
+10,000 versus 10.</p>
+
+<p>The likely mechanism: a committed insert leaves a heap row, an entry in the unique index, and a WAL
+record that must be flushed to disk before <code>COMMIT</code> returns. A rejected insert is turned away
+at the index and leaves none of the three. Fewer seats means fewer commits means less durable work.</p>
+
+<div class="note warn">
+  <span class="tag">The honest epistemics, kept deliberately</span>
+  <p>This has not been profiled. It is the <em>likely</em> explanation, not a measured one. What
+  <strong>is</strong> established is the negative: the failed-write story is ruled out by the data.
+  Separating “I proved X is false” from “I suspect Y is true” is the whole difference between a
+  measurement and an opinion — and stating that boundary out loud is worth more in an interview than a
+  confident guess.</p>
+</div>
+
+<h3>What the benchmark does not measure</h3>
+
+<ul>
+  <li><strong>Not an isolated contention test.</strong> Database latency, connection-pool queueing and
+  system noise are all inside these numbers. It is an honest end-to-end request benchmark, not a clean
+  measurement of contention alone.</li>
+  <li><strong>All local.</strong> Postgres ran in a Docker container on the same machine. A network
+  between the client and the database adds latency and dropped requests that would shift every number.</li>
+  <li><strong>One skew only.</strong> The 80/20 split was fixed across all runs. At 50/50 the row lock
+  might well take the lead back from CAS — that was never tested, so it is not claimed.</li>
+  <li><strong>Connection-pool queueing is included.</strong> 30,000 requests through 90 connections
+  means roughly 111 requests queueing per connection. Every mechanism faces the same pool, so the
+  comparison stays fair, but the absolute numbers carry that delay.</li>
+</ul>
+
+<h3>The M0 bet: overturned</h3>
+
+<p>M0 picked the row lock. The measurement said otherwise: CAS won across the tested cases, and the row
+lock degraded exactly where the flash-sale premise lives — at the concentrated end. The bet was
+overturned by the project's own data, which is the entire reason for running the shootout instead of
+reading a blog post.</p>
+
+<h2 id="retry-problem"><span class="num">09</span>One person seen twice</h2>
+
+<p>M1 proved a guarantee about <strong>different people</strong>: thirty thousand requests, one seat, one
+winner. M2 is a guarantee about <strong>one person seen twice</strong>.</p>
+
+<p>Alice books seat 14A. The database commits. The pod dies before the response leaves. Her browser
+shows a spinner, then an error. She clicks Book again.</p>
+
+<p>Without M2, the second request runs from the top, finds no matching <code>request_id</code>, reads
+<code>seats.status</code>, sees <code>booked</code>, and returns <code>seat_taken</code>. <strong>Alice
+is told the seat is gone. She owns it.</strong> That is a direct violation of Guarantee 4, and once
+payment exists it becomes a double charge or a charge with no booking.</p>
+
+<div class="keystone">
+  <p>The client cannot know whether the lost attempt succeeded. Neither can the server after it
+  restarts. You do not fix that by asking harder. You fix it by making a retry safe to repeat, so that
+  whether or not the first attempt landed, running it again produces the same single outcome.</p>
+</div>
+
+<h3>Decision 1 — the client mints the key</h3>
+
+<p>The client generates the idempotency key when the user clicks Book and sends it with the request.
+The server cannot generate it: if the server invents the key and the response is lost, the client never
+receives it, has nothing to send on the retry, and the server has no way to recognise the second request
+as the same intent. <strong>A key is only useful if it survives on the side that does the retrying.</strong></p>
+
+<div class="note">
+  <span class="tag">The distinction that makes a stored “no” defensible</span>
+  <p>One <code>request_id</code> means <strong>one user intent, not one HTTP call.</strong> An automatic
+  retry of the same click reuses the key — it is asking <em>“what was my answer?”</em>, not <em>“book me
+  a seat now.”</em> If Alice clicks Book herself a second time, that is a new intent: the client mints a
+  new key and gets a fresh answer against the current state of the world.</p>
+  <p>So the server is never claiming the seat is still taken. It is repeating the answer to a question
+  already asked and already decided. Alice is never trapped, because asking again is always available
+  to her.</p>
+</div>
+
+<h3>Decision 2 — keys outlive the latest possible retry</h3>
+
+<p>The rule: <strong>the key must outlive the longest delay at which a retry can still arrive.</strong></p>
+
+<p>Why it matters, and it is not obvious. Alice loses the race and is told <code>seat_taken</code>. Four
+minutes later Bob's hold expires and 14A returns to <code>free</code>. Something retries her original
+request — a proxy, a mobile app resuming from a background queue.</p>
+
+<ul>
+  <li><strong>Key row still exists</strong> → the server replies <code>seat_taken</code> again. Correct:
+  same question, same answer.</li>
+  <li><strong>Key row expired</strong> → the server has no memory of Alice. It runs the booking logic
+  fresh, finds the seat free, and books it. <em>She wakes up owning a seat she never asked for.</em></li>
+</ul>
+
+<p>In practice the upper bound is unbounded — a phone in a tunnel can resend hours later — so no number
+is provably safe. The honest answer is a generous fixed window with a small accepted residual risk.
+Stripe keeps idempotency keys for 24 hours for exactly this reason.</p>
+
+<div class="note warn">
+  <span class="tag">Do not align the key lifetime with the hold timeout</span>
+  <p>With a 5-minute hold, seats start returning to <code>free</code> at the 5-minute mark. If the key
+  also dies at 5 minutes, the server loses its memory at the exact instant the world starts changing.
+  Both failure conditions line up <em>by design</em> rather than by bad luck. Sit well above the hold
+  timeout, never on it.</p>
+</div>
+
+<p>Cleanup is a periodic background delete that never runs on the booking path — a user waiting on a
+seat must not pay for housekeeping:</p>
+
+<pre><code>DELETE FROM request_lookup WHERE created_at &lt; now() - interval '24 hours';</code></pre>
+
+<p class="footnote">Time-partitioning the table and dropping whole partitions is faster at scale, since
+dropping a partition is instant and a large <code>DELETE</code> is not. At roughly 30,000 rows per event
+that solves a problem this system does not have. Noted, not built.</p>
+
+<h2 id="claim-first"><span class="num">10</span>Claim-first, and why order is the mechanism</h2>
+
+<p>This is the hardest decision in M2 and the one a naive idempotency-key design gets wrong.</p>
+
+<h3>The failure a <code>SELECT</code> cannot catch</h3>
+
+<p>Alice's request gets stuck behind the connection pool and takes 3 seconds. Her client gives up at 2
+seconds and retries with the same key. Requests <strong>A</strong> and <strong>B</strong> are now inside
+the database at the same moment, both carrying <code>abc</code>. Neither has finished, so neither has
+written anything.</p>
+
+<p>If the key check is a <code>SELECT</code>, both run it and both find nothing. <strong>Reads cannot see
+uncommitted rows</strong> — that is not a bug, it is what isolation means — so B has no way to detect
+that A exists. Both proceed as first attempts.</p>
+
+<p>A wins the CAS and commits. B's <code>UPDATE</code> matches nothing, so B loops, re-reads, sees
+<code>booked</code>, and returns <code>seat_taken</code>. One key, two responses racing back to one
+customer. She sees whichever arrives first. If <code>seat_taken</code> lands first, she believes she has
+no seat while owning one.</p>
+
+<div class="keystone">
+  <p>No ordering of <code>SELECT</code> and work helps, because the <code>SELECT</code> is blind to
+  uncommitted siblings by definition. The check has to be something that <em>collides</em> with A, not
+  something that reads around it.</p>
+</div>
+
+<h3>The design</h3>
+
+<pre><code>1. BEGIN
+2. INSERT the key row (request_id UNIQUE)
+     -&gt; 23505: read the stored outcome and return it
+3. run the CAS loop
+4. UPDATE the key row with the final outcome, INSERT the booking row
+5. COMMIT</code></pre>
+
+<p>When B tries to insert <code>abc</code> while A's uncommitted row sits there, Postgres cannot decide
+whether the constraint is violated. The answer depends on something that has not happened yet: if A
+commits, <code>abc</code> exists and B is a duplicate; if A rolls back, <code>abc</code> never existed and
+B is fine.</p>
+
+<p>So Postgres does the only honest thing available. <strong>It makes B wait.</strong> B's
+<code>INSERT</code> blocks until A's transaction ends, one way or the other.</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>A's outcome</th><th>What happens to B</th><th>Correct?</th></tr></thead>
+  <tbody>
+    <tr><td>Committed</td><td>B's insert fails <code>23505</code>. B reads the now-visible key row and returns A's outcome. B never touches the seat.</td><td><span class="pill good">yes</span></td></tr>
+    <tr><td>Rolled back</td><td><code>abc</code> does not exist. B's insert succeeds and B does the real work. Alice gets one proper attempt instead of zero.</td><td><span class="pill good">yes</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Both branches are correct and <strong>no coordination code was written.</strong> The uniqueness check
+does the waiting.</p>
+
+<h3>Why the order is the mechanism</h3>
+
+<p>If the claim is placed at the end, next to the booking insert, it never runs for the request that
+needs it. B loses the CAS, returns <code>seat_taken</code> at the status check, and exits long before
+reaching any insert. The constraint would be present in the code and unreachable in practice.</p>
+
+<div class="keystone">
+  <p>In CAS, any protection placed after the seat status read is dead code for losers.</p>
+</div>
+
+<p>B has to be stopped before it can form an opinion. Once B has read the status it already holds an
+answer, and it will return that answer. So the key insert is not a record of what happened — <strong>it
+is a claim on the right to decide, taken before any deciding starts.</strong></p>
+
+<h3>Why both writes share one transaction</h3>
+
+<p>The key row and the booking row land together or not at all. If the booking rolled back while the key
+row survived, the key would claim a booking that does not exist, and every future retry would be handed
+the outcome of an attempt that never completed.</p>
+
+<h3>What it costs</h3>
+
+<p>Only requests carrying a <code>request_id</code> that another <em>live</em> request is already using
+ever wait. Two different customers fighting over seat 14A carry different keys, never collide in the key
+table, and meet only at the CAS <code>UPDATE</code> as before. <strong>CAS's property of never queueing
+on contention survives for real traffic.</strong></p>
+
+<p>The claim-insert does not reduce round trips — it fires on every request, and a write costs more than
+an indexed read, so per request it is slightly <em>more</em> expensive than the pre-lookup
+<code>SELECT</code> it replaces.</p>
+
+<div class="note">
+  <span class="tag">The sharpest line in M2</span>
+  <p>Cost is not the reason to do this. The <code>SELECT</code> design is <strong>wrong</strong>, not
+  slow, and there was never a cheaper correct option to trade against. That is the difference from M1:
+  there, three mechanisms were all correct and the numbers picked the winner. Here only one candidate is
+  correct, so the numbers decide nothing.</p>
+</div>
+
+<h2 id="memoize"><span class="num">11</span>What may be memoized</h2>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Outcome</th><th>Stored</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td><code>booked</code></td><td><span class="pill good">yes</span></td><td>A decision was made</td></tr>
+    <tr><td><code>seat_taken</code></td><td><span class="pill good">yes</span></td><td>A decision was made, and it can go stale — which is exactly why it must be pinned</td></tr>
+    <tr><td><code>sold_out</code></td><td><span class="pill good">yes</span></td><td>Same shape as <code>seat_taken</code>; a freed hold could flip it</td></tr>
+    <tr><td><code>already_mine</code></td><td><span class="pill flat">no</span></td><td>It is produced <em>by</em> a lookup hit — never an original decision</td></tr>
+    <tr><td><code>system_error</code></td><td><span class="pill bad">no</span></td><td>Not an answer at all</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="keystone">
+  <p>Memoize decisions, never failures.</p>
+</div>
+
+<p>A system error is not a result, it is the <em>absence</em> of one. Nothing was decided, so there is
+nothing to repeat. Storing it would freeze a temporary failure into a permanent one — when a retry is
+precisely the correct response to a transient failure.</p>
+
+<p>This is why <code>request_lookup.outcome</code> is nullable. Between the claim and the decision the
+row exists but nothing has been decided, so there is nothing honest to put in it. <strong>A null outcome
+means “claimed, still running.”</strong></p>
+
+<h2 id="pair-test"><span class="num">12</span>The 1,000-pair overlap proof</h2>
+
+<p><code>TestBookSeatCAS_ConcurrentDuplicates</code> fires 1,000 pairs of duplicate requests — 2,000
+goroutines, same starting gun, 100 seats — where both members of a pair carry the <em>same</em>
+<code>request_id</code> and customer.</p>
+
+<pre><code>for p := range pairs {
+    seatID := seats[rand.Intn(seatCount)]
+    for i := 0; i &lt; 2; i++ {
+        go func(p int, i int) {
+            &lt;-start
+            startTime := time.Now()
+            out, _, _ := BookSeatCAS(ctx, pool, eventID, seatID,
+                fmt.Sprintf("customer-%d", p), fmt.Sprintf("req-%d", p))
+            results[p][i] = PairMatching{Outcome: out, startTime: startTime, endTime: time.Now()}
+        }(p, i)
+    }
+}</code></pre>
+
+<h3>Only two legal pair outcomes</h3>
+
+<ul>
+  <li>One <code>booked</code> + one <code>already_mine</code> — the duplicate was recognised.</li>
+  <li>Both <code>seat_taken</code> — a different customer won the seat, and both halves agree.</li>
+</ul>
+
+<p>Anything else fails the test, including the specific catastrophe M2 exists to prevent: one member
+returning <code>booked</code> while the other returns <code>seat_taken</code>.</p>
+
+<h3>The part that makes it a real proof</h3>
+
+<pre><code>if r[0].startTime.Before(r[1].endTime) &amp;&amp; r[1].startTime.Before(r[0].endTime) {
+    overlapCount++
+}
+...
+if overlapCount &lt; (pairs / 2) {
+    t.Errorf("only %d of %d pairs overlapped — the test cannot prove concurrency", overlapCount, pairs)
+}</code></pre>
+
+<div class="keystone">
+  <p>The test verifies that the two goroutines' execution windows actually <em>overlapped in time</em>,
+  and fails if fewer than half did — so a pass proves a real race rather than a lucky serialisation.</p>
+</div>
+
+<p>This is the direct descendant of Lie 2 in the M1 harness. Having once shipped a benchmark that
+measured nothing because nothing raced, the next test was built to <strong>prove its own
+premise</strong>. That instinct — assert that the conditions you claim to be testing actually
+occurred — generalises to every concurrency test anyone will ever ask about.</p>
+
+<p>The final assertion reconciles again: the count of <code>booked</code>/<code>already_mine</code> pairs
+must equal <code>SELECT count(*) FROM bookings</code>.</p>
+
+<h2 id="holds"><span class="num">13</span>Expiring holds (M4, in progress)</h2>
+
+<p>Real ticketing UX: a seat is <strong>held</strong> for ten minutes while the buyer checks out, then
+releases if not confirmed. This adds <em>time</em> as a failure dimension and opens a new family of
+races:</p>
+
+<ul>
+  <li>A hold expires at the exact moment the user clicks confirm.</li>
+  <li>The process dies between hold and confirm.</li>
+  <li>A background expiry reaper races a confirmation.</li>
+  <li>Held-but-never-confirmed seats leak inventory.</li>
+</ul>
+
+<h3>The hold acquisition, as written</h3>
+
+<pre><code>UPDATE seats
+   SET status = 'held',
+       held_until = now() + interval '10 minutes',
+       held_by = $1
+ WHERE id = $2
+   AND (status='free' OR (status='held' AND held_until &lt; now()))
+RETURNING held_until</code></pre>
+
+<p>Three things are happening in one statement, and they are worth naming separately:</p>
+
+<ol>
+  <li><strong>It is a compare-and-swap.</strong> Same shape as M1's mechanism 3 — the precondition lives
+  in the <code>WHERE</code>, so check and act are one atomic operation.</li>
+  <li><strong>It absorbs expiry into the predicate.</strong> <code>status='held' AND held_until &lt;
+  now()</code> means an expired hold is <em>automatically</em> claimable by the next requester. No reaper
+  is required for correctness.</li>
+  <li><strong><code>RETURNING</code> makes the result self-reporting.</strong> A row back means the hold
+  was granted and hands you the deadline in the same round trip; <code>pgx.ErrNoRows</code> means it was
+  not. No second query is needed to find out whether you won.</li>
+</ol>
+
+<div class="note">
+  <span class="tag">Why <code>now()</code> and not a Go timestamp</span>
+  <p>Both the deadline and the comparison are evaluated by Postgres. If the application computed
+  <code>time.Now().Add(10*time.Minute)</code> and sent it, correctness would depend on every replica's
+  clock agreeing — which in M5 they will not. One clock, in one place, is the only version that survives
+  multiple instances.</p>
+</div>
+
+<h3>The retry path for holds</h3>
+
+<p>The <code>23505</code> branch reuses the claim-first pattern from M2, but has more to answer because a
+hold has states a booking does not. It joins the key table to the seat:</p>
+
+<pre><code>SELECT r.outcome, r.seat_id, s.held_by, s.status, s.held_until,
+       s.held_until &gt; now() AS still_live
+  FROM request_lookup r
+  JOIN seats s ON s.id = r.seat_id
+ WHERE r.request_id = $1</code></pre>
+
+<p><code>still_live</code> is computed <em>by the database</em>, in the same snapshot as the row it
+describes. Reading <code>held_until</code> into Go and comparing it against <code>time.Now()</code> would
+reintroduce exactly the clock problem the design just removed.</p>
+
+<p>The branch then answers:</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Condition</th><th>Answer</th></tr></thead>
+  <tbody>
+    <tr><td><code>storedSeatID != seatID</code></td><td><code>client_error</code> — same key, different seat</td></tr>
+    <tr><td>stored <code>hold_granted</code>, seat now <code>booked</code>, held by me</td><td><code>already_mine</code></td></tr>
+    <tr><td>stored <code>hold_granted</code>, seat now <code>booked</code>, held by someone else</td><td><code>seat_taken</code></td></tr>
+    <tr><td>held by me and <code>still_live</code></td><td><code>hold_active</code> + the deadline</td></tr>
+    <tr><td>otherwise</td><td><code>hold_expired</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="open-edges"><span class="num">14</span>Open edges in <code>hold.go</code></h2>
+
+<p>This section is the re-entry point. The function ends at <code>panic("todo")</code> and the design
+comments sitting above it are the instruction, left in place deliberately:</p>
+
+<pre><code>//put Update to the seats table for the seatID shared and check if it available to be put in held
+//for someone else to take it
+//if the Returning gives back a row this means something was written and the seat is held
+//if not then we do a SELECT read and give back a correct status of what is the state of the request,
+//is it held by them already, someone else booked it</code></pre>
+
+<div class="note warn">
+  <span class="tag">The open prediction — do not look this up, answer it first</span>
+  <p>On the path where the <code>UPDATE</code> <strong>succeeds</strong> and returns a row, the function
+  falls through to:</p>
+  <pre style="margin:10px 0 0"><code>_, err = tx.Exec(ctx, "UPDATE request_lookup SET outcome = $1 WHERE request_id = $2",
+    OutcomeSeatTaken, requestID)</code></pre>
+  <p style="margin-top:10px"><strong>What does that store, and what will the <code>23505</code> branch
+  answer on the next retry of the same <code>request_id</code>?</strong> Write the answer down before
+  running anything. This is the standing prediction for the next session and it is deliberately not
+  answered here.</p>
+</div>
+
+<h3>Other edges visible in the current code</h3>
+
+<ul>
+  <li><strong>No <code>tx.Commit(ctx)</code> exists in <code>HoldSeat</code>.</strong> There is
+  <code>defer tx.Rollback(ctx)</code> and <code>txc.Commit(ctx)</code> for the savepoint, but the outer
+  transaction is never committed on any path. Whatever the <code>UPDATE</code> wrote is discarded when
+  the function returns.</li>
+  <li><strong>The miss branch classifies only one case.</strong> After <code>pgx.ErrNoRows</code>, the
+  re-read handles <code>seatStatus == booked</code> and returns. Every other state — held by someone
+  else and still live, held by me, free-again — falls through to the line below rather than producing an
+  outcome.</li>
+  <li><strong><code>return HoldResult{Outcome: OutcomeBooked}, err</code></strong> in that branch returns
+  <code>err</code>, which is <code>nil</code> at that point because the <code>Scan</code> succeeded.
+  Returning a nil error is correct here; returning the variable rather than <code>nil</code> is the kind
+  of line that reads as a mistake even when it behaves.</li>
+  <li><strong><code>heldUntil</code> is shadowed.</strong> The outer <code>var heldUntil time.Time</code>
+  and the inner <code>var heldUntil *time.Time</code> in each branch are different variables. The
+  granted-path value never reaches the branches, which is fine today and a trap the moment someone edits
+  it.</li>
+  <li><strong>Still owed, and the decision belongs <em>before</em> <code>ConfirmSeat</code>:</strong>
+  retire <code>BookSeatCAS</code>, or keep it alongside the hold path? Once holds exist, a direct book
+  and a hold-then-confirm are two doors into the same inventory, and both have to respect the same
+  invariant. Decide deliberately rather than discovering it mid-implementation.</li>
+</ul>
+
+<h2 id="remaining"><span class="num">15</span>M5 and M6</h2>
+
+<h3>M5 — multi-instance correctness</h3>
+
+<p>Run several instances of the service behind a real load balancer and <strong>re-test, do not
+assume.</strong> If the mechanism relies purely on the database as shared source of truth it likely
+extends — but “likely” is not the standard this project holds itself to, and the M1 proof gets re-run
+through the load balancer unchanged.</p>
+
+<div class="note warn">
+  <span class="tag">Where multi-instance bugs actually hide</span>
+  <p>In any in-memory optimisation added along the way. A per-process cache of seat status, a local
+  rate limiter, an in-process hold timer: each is correct on one instance and wrong on three. The audit
+  before M5 is simply <em>list everything held in process memory</em> — the list is the bug list.</p>
+</div>
+
+<h3>M6 — load test, then designed overload</h3>
+
+<p>Two halves, and the second is the interesting one:</p>
+
+<ol>
+  <li><strong>Discover the ceiling.</strong> k6, a real flash-sale burst against the deployed system,
+  p50/p95/p99, zero overselling under realistic load. Crucially: distinguish <em>correctly rejected
+  because actually sold out</em> from <em>incorrectly failed</em>.</li>
+  <li><strong>Design what happens past it.</strong> Admission control (a bounded queue or semaphore),
+  <code>429 + Retry-After</code>, per-user rate limiting, and a measured
+  <strong>goodput-under-overload</strong> curve showing graceful degradation instead of collapse.</li>
+</ol>
+
+<p>A flash sale is organic DDoS, so backpressure is thematic here rather than polish. M6 is the ship
+line: milestone results written up, README leading with the crossover and the overload behaviour,
+deployed and reachable — then it stops being touched.</p>
+
+<h2 id="debts"><span class="num">16</span>Debts, drift and traps</h2>
+
+<div class="note warn">
+  <span class="tag">Doc/code drift — worth reconciling</span>
+  <p><code>M2-design.md</code> specifies a table named <code>idempotency_keys</code> carrying an
+  <code>event_id</code> column. The migration that shipped is <code>request_lookup</code>, with no
+  <code>event_id</code>. The behaviour is equivalent; the names are not. Either rename the table or
+  amend the doc — a reader who greps for <code>idempotency_keys</code> today finds nothing.</p>
+</div>
+
+<div class="note warn">
+  <span class="tag">Flagged, unverified — run it before quoting it</span>
+  <p>The shared harness's retry assertion requires <code>booked → already_mine</code>. Reading the
+  source, <code>BookSeatRowLock</code> never inspects <code>request_id</code> at all: a retry of a
+  successful booking locks the seat, finds the existing booking row, and returns
+  <code>seat_taken</code>. That would fail the assertion. <code>BookSeat</code> (constraint) does look
+  up <code>request_id</code> in <code>bookings</code>, so it passes.</p>
+  <p>If that is right, the retry check is only meaningful for two of the three mechanisms — which is
+  defensible (M2 was scoped to CAS deliberately) but should be <em>stated</em> rather than left for a
+  reader to discover. This is an inference from reading the code, not an observed test run. Verify it
+  before repeating it.</p>
+</div>
+
+<h4>Smaller traps worth knowing about</h4>
+<ul>
+  <li><strong><code>rand.Intn(rangeLow)</code> panics if <code>rangeLow</code> is 0.</strong> With
+  <code>rangeLow = int(seatCount * 0.2)</code>, any seat pool below 5 makes it zero. The current array
+  bottoms out at 10, so it never fires — a latent constraint on the test parameters rather than a bug.</li>
+  <li><strong>Check 1 is a range, not an equality.</strong> <code>counts[booked]</code> is asserted
+  between <code>rangeLow</code> and <code>seatCount</code>, because with many seats and a skewed target
+  distribution not every seat gets attacked. The <em>real</em> oversell guarantee is carried by check 3b,
+  not check 1. Say that clearly if asked — the loose bound looks like weak testing until the reason is
+  given.</li>
+  <li><strong><code>BookSeat</code> returns <code>already_mine</code> without comparing the seat.</strong>
+  Unlike the CAS path, it does not raise <code>client_error</code> when the same key arrives for a
+  different seat.</li>
+  <li><strong>The 6-second inter-batch sleep is inside the measured wall clock</strong> of the test but
+  outside the per-request timings, which are what p99 is computed from. Fine as written; worth
+  remembering before anyone tries to derive throughput from total runtime.</li>
+</ul>
+
+<h2 id="defend"><span class="num">17</span>Defending it out loud</h2>
+
+<p>Answer these from memory first, then check. The point is not to have read them — it is to have said
+them.</p>
+
+<details>
+<summary>Why not just use <code>SERIALIZABLE</code> and let Postgres sort it out?</summary>
+<div class="answer">
+<p>It would be correct, and it is a fair question to be asked. Under <code>SERIALIZABLE</code>, Postgres
+detects the conflict and aborts one transaction with a serialisation failure, which the application must
+then retry — so the retry loop does not disappear, it moves. You also pay predicate-locking overhead on
+every transaction, including the ones that were never going to conflict.</p>
+<p>The deeper reason this project did not start there: the point was to understand <em>what each
+mechanism costs a loser</em>. <code>SERIALIZABLE</code> hides that behind the isolation level. It is the
+right production answer for a system with many varied conflicting transactions; it is the wrong teaching
+instrument for one hot row.</p>
+</div>
+</details>
+
+<details>
+<summary>Why is <code>READ COMMITTED</code> not enough on its own?</summary>
+<div class="answer">
+<p>Because atomicity is not isolation. Under <code>READ COMMITTED</code> each statement sees a fresh
+snapshot of committed data — which means two transactions can both read “seat is free,” both proceed,
+and both act. The read was accurate at the moment it happened and stale by the moment it was used. That
+gap between check and act is the entire bug class, and no isolation level below
+<code>REPEATABLE READ</code> closes it for you.</p>
+<p>All three mechanisms are ways of closing that gap explicitly: the lock removes the concurrency, the
+constraint detects the collision after the fact, and CAS folds the check into the write so there is no
+gap to race in.</p>
+</div>
+</details>
+
+<details>
+<summary>Your benchmark says CAS wins. Would you use CAS in production?</summary>
+<div class="answer">
+<p>For a flash sale, yes — that is the concentrated regime and it is where CAS won. But the honest
+headline is “no single winner,” not “CAS is fastest,” and the claim is regime-specific. For a booking
+system where demand is spread across a large inventory, the row lock was measurably better, and its
+code is simpler and has no retry loop.</p>
+<p>Also worth saying: the numbers were measured on one machine with the database in local Docker, at a
+fixed 80/20 skew. I would re-run them against the real deployment before betting a production decision
+on them.</p>
+</div>
+</details>
+
+<details>
+<summary>What was actually hard about this?</summary>
+<div class="answer">
+<p>Not the mechanisms — each is about thirty lines. It was learning not to trust my own benchmark. Three
+separate times the harness was measuring something other than what I thought: overlapping batches,
+goroutines released one at a time so nothing raced, and a single-seat contest that resolved in five
+milliseconds before enough competitors had even arrived.</p>
+<p>Every one of those produced numbers that looked completely reasonable. The fix that stuck was
+building the next test so it proves its own premise — the duplicate-pair test asserts that the two
+goroutines' execution windows actually overlapped, and fails if fewer than half did.</p>
+</div>
+</details>
+
+<details>
+<summary>Why claim the idempotency key first instead of looking it up?</summary>
+<div class="answer">
+<p>Because a <code>SELECT</code> cannot see uncommitted rows. If the original request and its retry are
+in flight simultaneously, both lookups find nothing and both proceed as first attempts — and the
+customer can end up being told the seat is taken while owning it.</p>
+<p>Inserting under a <code>UNIQUE</code> constraint <em>collides</em> instead of reading around the
+problem. The second insert blocks until the first transaction resolves, then either reads back the
+committed outcome or proceeds because the first rolled back. Both branches are correct and no
+coordination code was written.</p>
+<p>And the order is the mechanism, not an implementation detail: in CAS, any protection placed after the
+seat status read is dead code for losers, because a loser has already formed an answer by then.</p>
+</div>
+</details>
+
+<details>
+<summary>Why don't you store <code>system_error</code> in the key table?</summary>
+<div class="answer">
+<p>Memoize decisions, never failures. A system error is the absence of a result, not a result — nothing
+was decided, so there is nothing to repeat. Storing it would freeze a transient failure into a permanent
+one, at exactly the moment when retrying is the correct response.</p>
+</div>
+</details>
+
+<details>
+<summary>A stored <code>seat_taken</code> could be stale. Isn't replaying it lying to the user?</summary>
+<div class="answer">
+<p>No, and this is the distinction the design rests on. One <code>request_id</code> is one user
+<em>intent</em>, not one HTTP call. A retry carrying the same key is asking “what was my answer?”, and
+the honest response is the answer that was given. The server is not claiming the seat is still taken.</p>
+<p>If the user clicks Book again themselves, that is a new intent, the client mints a new key, and they
+get a fresh answer against the current state of the world. They are never trapped.</p>
+</div>
+</details>
+
+<details>
+<summary>How do you know your concurrency test actually tested concurrency?</summary>
+<div class="answer">
+<p>Because it checks. The duplicate-pair test records a start and end timestamp for each goroutine and
+counts how many pairs genuinely overlapped in time — <code>a.start &lt; b.end &amp;&amp; b.start &lt;
+a.end</code>. If fewer than half the pairs overlapped, the test fails with “the test cannot prove
+concurrency,” even if every outcome was legal.</p>
+<p>That check exists because an earlier version of the harness passed while nothing raced at all.</p>
+</div>
+</details>
+
+<details>
+<summary>Why is expiry a predicate instead of a background job?</summary>
+<div class="answer">
+<p>Because a background job is an extra thing that can be down, and an application timer dies with the
+process that holds it. Putting <code>status='held' AND held_until &lt; now()</code> in the
+<code>WHERE</code> clause means an expired hold is claimable by the next requester automatically, with
+no reaper running and no clock outside the database.</p>
+<p>A reaper is still worth having — it keeps availability reads honest and stops stale rows accumulating
+— but it becomes an optimisation rather than a correctness requirement. That distinction is the whole
+design.</p>
+</div>
+</details>
+
+<details>
+<summary>What doesn't this project prove?</summary>
+<div class="answer">
+<p>Multi-instance correctness — that is M5 and it is explicitly untested, because single-instance
+correctness does not automatically transfer. Behaviour past the capacity ceiling — that is M6. And the
+benchmark is an end-to-end request measurement on one machine, not an isolated measurement of contention:
+pool queueing, local Docker and system noise are all inside those numbers.</p>
+</div>
+</details>
+
+<h2 id="glossary"><span class="num">18</span>Glossary</h2>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Term</th><th>Meaning here</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Check-then-act</strong></td><td>Read a value, decide from it, then write. The gap between the read and the write is where the race lives. The bug class this whole project is about.</td></tr>
+    <tr><td><strong>Lost update</strong></td><td>Two transactions read the same value, both compute from it, both write. One update silently disappears.</td></tr>
+    <tr><td><strong>Optimistic concurrency</strong></td><td>Assume no conflict, detect it at write time, retry. CAS and the unique constraint are both optimistic.</td></tr>
+    <tr><td><strong>Pessimistic concurrency</strong></td><td>Prevent conflict by excluding others up front. <code>SELECT … FOR UPDATE</code>.</td></tr>
+    <tr><td><strong>CAS</strong></td><td>Compare-and-swap. The precondition lives in the <code>WHERE</code> clause, so check and act are one atomic statement. <code>RowsAffected()</code> is the verdict.</td></tr>
+    <tr><td><strong>23505</strong></td><td>Postgres SQLSTATE for <em>unique_violation</em>. Distinguishes “someone beat me” from “the database is broken.”</td></tr>
+    <tr><td><strong>Savepoint</strong></td><td>A nested rollback point. In pgx, <code>tx.Begin</code> on an existing transaction. Lets an <em>expected</em> error be recovered from without poisoning the outer transaction.</td></tr>
+    <tr><td><strong>Head-of-line blocking</strong></td><td>One slow item at the front of a queue delays everything behind it. The row lock's failure mode under contention.</td></tr>
+    <tr><td><strong>p99</strong></td><td>The latency the slowest 1% of requests exceed. The tail, where queueing shows up and averages hide it.</td></tr>
+    <tr><td><strong>Goodput</strong></td><td>Useful work completed per second, as distinct from throughput, which counts work attempted. The metric that matters under overload.</td></tr>
+    <tr><td><strong>Idempotency key</strong></td><td>A client-minted id for one user <em>intent</em>. Repeating it must produce the same single outcome.</td></tr>
+    <tr><td><strong>Exactly-once (client-visible)</strong></td><td>The customer ends with exactly one booking and one answer, regardless of how many times the request was delivered. Not the same as exactly-once delivery, which is not achievable.</td></tr>
+    <tr><td><strong>Honest-none</strong></td><td>When something cannot be determined, return nothing rather than guess. Borrowed vocabulary, same discipline as “memoize decisions, never failures.”</td></tr>
+    <tr><td><strong>WAL</strong></td><td>Write-ahead log. Committed writes must be flushed to it before <code>COMMIT</code> returns — the likely reason committed inserts cost more than rejected ones.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="runbook"><span class="num">19</span>Runbook</h2>
+
+<pre><code>make db-up      # start Postgres 16 in Docker (user/db: holdfast)
+make migrate    # apply migrations 001-004 in order
+make test       # run the suite with -race</code></pre>
+
+<h4>Direct equivalents</h4>
+<pre><code>docker compose up -d db
+go test -race ./internal/booking/
+
+# one mechanism at a time — the full matrix takes a while
+go test -race -run TestBookSeatCAS_NoDoubleBooking ./internal/booking/ -v
+go test -race -run TestBookSeatCAS_ConcurrentDuplicates ./internal/booking/ -v
+
+# connectivity smoke test
+go run ./cmd/api        # prints "holdfast: database reachable"</code></pre>
+
+<dl class="kv">
+  <dt>DSN default</dt><dd><code>postgres://holdfast:holdfast_dev@localhost:5432/holdfast?pool_max_conns=90</code></dd>
+  <dt>Override</dt><dd><code>DATABASE_URL</code></dd>
+  <dt>Repo state</dt><dd>One commit: <code>509a6f3</code> — contract, M1 shootout, M2 exactly-once, M4 in progress</dd>
+</dl>
+
+<div class="note">
+  <span class="tag">Before the next session</span>
+  <p>Re-entry point is <code>internal/booking/hold.go</code>, step 2 of <code>HoldSeat</code>. Write the
+  prediction in <a href="#open-edges">§14</a> down <em>before</em> running anything. The design comments
+  above the <code>panic</code> are the plan — leave them there.</p>
+</div>
+
+<hr>
+<p class="footnote">Built from source on 2026-09-22: <code>PLAN.md</code>, <code>README.md</code>,
+<code>docs/M0-contract.md</code>, <code>docs/M1-design.md</code>, <code>docs/M1-results.md</code>,
+<code>docs/M2-design.md</code>, <code>docs/M2-results-questions.md</code>, all four migrations,
+<code>internal/booking/booking.go</code>, <code>internal/booking/hold.go</code>,
+<code>internal/booking/booking_test.go</code>, <code>cmd/api/main.go</code>. Where this document
+infers rather than reports, it says so.</p>
+
+</div>
+</main>
+</div>
+
+</body>
+</html>
