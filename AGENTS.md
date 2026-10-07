@@ -9,6 +9,9 @@ double-sell a seat, and never lie about the outcome.** Every claim is backed by 
 fail if it were false.
 
 ## Read before touching anything
+**`docs/BUILD-GUIDE.md`** — how to help on a hand-typed project, what to teach before M4/M5/M6, and
+the traps. Read section 0 first.
+
 **`docs/holdfast-reference.html`** — the field manual. 19 sections, every file documented: the four
 guarantees, all three concurrency mechanisms with what a *losing* request costs in each, the harness
 design including the three times it measured the wrong thing, the measured crossover, and the
