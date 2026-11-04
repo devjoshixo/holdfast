@@ -1,7 +1,7 @@
 # local tooling
 .claude/
 UNITITLED-1.txt
-api
+/api
 
 # go
 *.exe

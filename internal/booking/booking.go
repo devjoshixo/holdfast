@@ -23,6 +23,7 @@ const (
 	OutcomeHoldGranted     Outcome = "hold_granted" // user got the hold for a seat with held_until attached
 	OutcomeHoldActive      Outcome = "hold_active"  // customer already holds the seat and is under the held_until time limit
 	OutcomeHoldExpired     Outcome = "hold_expired" // the customer's hold expired before they confirmed
+	OutcomeHoldReleased    Outcome = "hold_released" // customer voluntarily released their hold
 )
 
 // SeatStatus is the value stored in seats.status for mechanism 3 (CAS).

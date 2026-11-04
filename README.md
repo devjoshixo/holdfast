@@ -66,6 +66,23 @@ Design and reasoning: **[docs/M2-design.md](docs/M2-design.md)**.
   at the *start* of the transaction, so a duplicate blocks until the original commits or rolls
   back, then reads back the original outcome.
 
+## Flash-sale load test & admission control (M6)
+
+Under an unmitigated flash sale, database connection exhaustion can cause latency cliffs and 500 errors. Holdfast introduces **zero-allocation admission control** via a buffered channel semaphore (`chan struct{}`) that bounds in-flight queries per replica and sheds peak bursts with `HTTP 429 Too Many Requests` + `Retry-After: 1`.
+
+Benchmarked using `k6` with 50 concurrent virtual users continuously hammering 3 API replicas behind an Nginx load balancer for a 40-seat inventory:
+
+| Metric | Measured Value |
+| :--- | :--- |
+| **Total Requests** | **8,423 requests** in 5.0s (**1,677 req/sec**) |
+| **Seats Claimed** | **40 / 40** (Exactly 40 `201 Created`, **0 double-bookings**) |
+| **Conflicts Handled** | **8,354** (`409 Conflict`) |
+| **Load Shed (Admission Control)** | **29** (`429 Too Many Requests`) |
+| **Internal Server Errors (5xx)** | **0 (0.00%)** |
+| **Latency (p50 / p90 / p95)** | **27.26 ms** / **43.46 ms** / **49.37 ms** |
+
+---
+
 ## Status
 
 | Milestone | State |
@@ -73,10 +90,10 @@ Design and reasoning: **[docs/M2-design.md](docs/M2-design.md)**.
 | M0 — correctness contract | done ([docs/M0-contract.md](docs/M0-contract.md)) |
 | M1 — 3-mechanism shootout, measured crossover | done ([docs/M1-results.md](docs/M1-results.md)) |
 | M2 — exactly-once under retries | done, proven |
-| M4 — expiring holds (hold → confirm state machine) | in progress |
-| M5 — multi-instance correctness behind a load balancer | planned |
-| M6 — flash-sale load test + designed overload behaviour | planned |
-| M7 — Kubernetes deployment, health checks, observability | planned |
+| M3 — REST API & live interactive web UI | done (Go 1.22 ServeMux + Tailwind dark mode) |
+| M4 — expiring holds (hold → confirm state machine) | done (background reaper with `FOR UPDATE SKIP LOCKED`) |
+| M5 — multi-instance correctness behind a load balancer | done (3 Docker replicas + Nginx round-robin) |
+| M6 — flash-sale load test + admission control | done (1,677 req/s, p95 49ms, 0 errors) |
 
 Full spec and milestone breakdown: **[PLAN.md](PLAN.md)**.
 

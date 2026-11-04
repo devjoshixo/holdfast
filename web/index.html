@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Holdfast — High-Concurrency Booking Platform</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .stage-curve {
+      border-top: 3px solid rgba(16, 185, 129, 0.5);
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+      box-shadow: 0 -15px 35px -5px rgba(16, 185, 129, 0.3);
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.9; transform: scale(0.97); }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-black">
+
+  <!-- Toast Notification Container (Floating Top-Right) -->
+  <div id="toast-container" class="fixed top-20 right-6 z-50 flex flex-col space-y-2 pointer-events-none max-w-sm w-full"></div>
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo + Tag -->
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 font-extrabold text-black text-lg tracking-wider">
+          H
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold tracking-tight text-lg text-white">HOLDFAST</span>
+            <span class="text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-semibold">Correct Under Contention</span>
+          </div>
+          <p class="text-xs text-zinc-400 hidden sm:block">Atomic CAS State Machine &bull; Zero Overselling</p>
+        </div>
+      </div>
+
+      <!-- Center: Stats Bar -->
+      <div class="hidden md:flex items-center space-x-6 text-xs font-mono bg-zinc-900/90 border border-zinc-800 px-4 py-2 rounded-xl">
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="text-zinc-400">Free:</span>
+          <span id="stat-free" class="font-bold text-white">--</span>
+        </div>
+        <div class="w-px h-3 bg-zinc-800"></div>
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span class="text-zinc-400">Held:</span>
+          <span id="stat-held" class="font-bold text-amber-300">--</span>
+        </div>
+        <div class="w-px h-3 bg-zinc-800"></div>
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-zinc-600"></span>
+          <span class="text-zinc-400">Booked:</span>
+          <span id="stat-booked" class="font-bold text-zinc-300">--</span>
+        </div>
+      </div>
+
+      <!-- Right: Customer Identity Switcher & Controls -->
+      <div class="flex items-center space-x-3">
+        <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded-xl p-1">
+          <span class="text-xs text-zinc-400 pl-2 pr-1.5 flex items-center gap-1">
+            <i data-lucide="user" class="w-3.5 h-3.5 text-zinc-400"></i> Buyer:
+          </span>
+          <select id="customer-select" class="bg-zinc-800 text-xs font-semibold text-white rounded-lg px-2.5 py-1.5 border border-zinc-700/60 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
+            <option value="dev_user">Dev (You)</option>
+            <option value="alice_sniper">Alice (Competitor)</option>
+            <option value="bob_buyer">Bob (Competitor)</option>
+          </select>
+        </div>
+
+        <button id="btn-refresh" title="Refresh Seat Map" class="p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white transition">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Left 8 Cols: Venue & Seat Map -->
+    <section class="lg:col-span-8 flex flex-col space-y-6">
+      
+      <!-- Event Hero Card -->
+      <div class="bg-gradient-to-br from-zinc-900/90 to-zinc-950 border border-zinc-800/90 rounded-2xl p-6 relative overflow-hidden">
+        <div class="absolute -right-12 -top-12 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-semibold uppercase tracking-wider border border-emerald-500/20">Flash Sale Live</span>
+              <span class="text-xs text-zinc-500 font-mono">Event ID #1</span>
+            </div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-white">Neon Horizon Concert — Main Stage</h1>
+            <p class="text-xs text-zinc-400 mt-1 flex items-center gap-1.5">
+              <i data-lucide="calendar" class="w-3.5 h-3.5 text-zinc-400"></i> Friday, Nov 20, 2026 &bull; 8:00 PM IST &bull; Apex Arena
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="text-right">
+              <div class="text-xs text-zinc-400">Tier 1 Ticket</div>
+              <div class="text-xl font-bold text-emerald-400 font-mono">$120.00</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage & Seat Grid Area -->
+      <div class="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6 sm:p-8 flex flex-col items-center relative">
+        
+        <!-- Curved Stage Visual -->
+        <div class="w-3/4 max-w-md h-12 stage-curve flex items-center justify-center text-xs font-bold uppercase tracking-widest text-emerald-400/90 mb-10">
+          STAGE / PERFORMANCE AREA
+        </div>
+
+        <!-- Seats Container -->
+        <div id="seat-grid" class="w-full max-w-xl grid grid-cols-10 gap-2 sm:gap-2.5 mb-8">
+          <!-- Dynamically populated 40 seats (A1..A10, B1..B10, C1..C10, D1..D10) -->
+        </div>
+
+        <!-- Seat Map Legend -->
+        <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-zinc-400 pt-4 border-t border-zinc-800/60 w-full max-w-xl">
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 rounded-md bg-zinc-800 border border-emerald-500/40"></div>
+            <span>Available</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 rounded-md bg-amber-500/20 border-2 border-amber-400 animate-pulse"></div>
+            <span>Held by You</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 rounded-md bg-zinc-900/80 border border-dashed border-amber-500/60"></div>
+            <span>Held by Other (Test 409)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 rounded-md bg-zinc-950 border border-zinc-900 opacity-40"></div>
+            <span>Booked (Sold)</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Concurrency / Correctness Architecture Explainer Box -->
+      <div class="bg-zinc-900/30 border border-zinc-800/60 rounded-xl p-4 text-xs text-zinc-400 space-y-2">
+        <div class="flex items-center gap-2 font-semibold text-zinc-300">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+          <span>Guaranteed Concurrency Invariants:</span>
+        </div>
+        <p class="leading-relaxed">
+          Clicking any seat claims an atomic 10-minute hold via PostgreSQL Compare-And-Swap (<code class="text-zinc-200">UPDATE seats WHERE status = 'free'</code>). 
+          If two buyers race for the same seat at the exact microsecond, PostgreSQL's row-level lock ensures exactly one gets <code class="text-emerald-400 font-mono">201 Created</code>, while the loser receives <code class="text-amber-400 font-mono">409 Conflict</code>.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- Right 4 Cols: Checkout & Telemetry Drawer -->
+    <aside class="lg:col-span-4 flex flex-col space-y-6">
+      
+      <!-- Checkout Card -->
+      <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-6 flex flex-col space-y-5 shadow-xl shadow-black/40">
+        
+        <div class="flex items-center justify-between pb-4 border-b border-zinc-800">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="ticket" class="w-4 h-4 text-emerald-400"></i>
+            Reservation Desk
+          </h2>
+          <span id="active-hold-badge" class="hidden text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 font-semibold animate-pulse">
+            HOLD ACTIVE
+          </span>
+        </div>
+
+        <!-- State 1: No Seat Selected / Held -->
+        <div id="panel-idle" class="flex flex-col items-center justify-center py-10 text-center space-y-3">
+          <div class="w-12 h-12 rounded-2xl bg-zinc-800/60 flex items-center justify-center text-zinc-500">
+            <i data-lucide="mouse-pointer-click" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-zinc-300">No seat selected</p>
+            <p class="text-xs text-zinc-500 mt-1">Select an available seat from the grid to place a 10-minute hold.</p>
+          </div>
+        </div>
+
+        <!-- State 2: Active Hold Selected -->
+        <div id="panel-held" class="hidden flex flex-col space-y-5">
+          
+          <!-- Selected Seat Info Box -->
+          <div class="bg-zinc-950/60 border border-zinc-800/80 rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs text-zinc-500 uppercase font-mono tracking-wider">Selected Seat</span>
+                <div id="held-seat-label" class="text-2xl font-extrabold text-white font-mono">--</div>
+              </div>
+              <div class="text-right">
+                <span class="text-xs text-zinc-500 uppercase font-mono tracking-wider">Total Due</span>
+                <div class="text-xl font-bold text-emerald-400 font-mono">$120.00</div>
+              </div>
+            </div>
+
+            <!-- Countdown Timer Card -->
+            <div class="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2 text-amber-300 text-xs">
+                  <i data-lucide="clock" class="w-4 h-4 animate-spin text-amber-400" style="animation-duration: 4s;"></i>
+                  <span class="font-medium">Hold expires in:</span>
+                </div>
+                <span id="countdown-timer" class="font-mono text-base font-bold text-amber-300">10:00</span>
+              </div>
+              <!-- Timer Progress Bar -->
+              <div class="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                <div id="timer-progress" class="bg-amber-400 h-1.5 rounded-full transition-all duration-1000 ease-linear" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <div class="text-[11px] text-zinc-400">
+              Seat is exclusively locked for <span id="held-customer-name" class="text-emerald-400 font-semibold">--</span>.
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="space-y-2.5 pt-2">
+            <button id="btn-confirm" class="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm tracking-wide transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer active:scale-[0.98]">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+              Confirm & Book Seat
+            </button>
+
+            <button id="btn-release" class="w-full py-2.5 px-4 rounded-xl bg-zinc-800/80 hover:bg-red-500/10 text-zinc-400 hover:text-red-400 border border-zinc-700/60 hover:border-red-500/30 font-medium text-xs transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98]">
+              <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
+              Voluntarily Release Hold
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Live API Telemetry Feed -->
+      <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-5 flex flex-col space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-zinc-300 font-mono flex items-center gap-1.5 uppercase tracking-wider">
+            <i data-lucide="terminal" class="w-3.5 h-3.5 text-zinc-400"></i>
+            API & Telemetry Log
+          </h3>
+          <div class="flex items-center gap-2">
+            <button id="btn-clear-log" class="text-[10px] text-zinc-500 hover:text-zinc-300 transition">Clear</button>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          </div>
+        </div>
+
+        <div id="telemetry-log" class="font-mono text-[11px] bg-zinc-950 p-3 rounded-xl border border-zinc-800/80 h-44 overflow-y-auto space-y-1.5 text-zinc-400">
+          <div class="text-zinc-600">// Engine live. Ready for requests.</div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Application Logic -->
+  <script>
+    lucide.createIcons();
+
+    const EVENT_ID = 1;
+    let seats = [];
+    let activeHold = null; // { seatID, label, heldUntil, customer, idempotencyKey }
+    let countdownInterval = null;
+
+    const dom = {
+      grid: document.getElementById('seat-grid'),
+      freeStat: document.getElementById('stat-free'),
+      heldStat: document.getElementById('stat-held'),
+      bookedStat: document.getElementById('stat-booked'),
+      customerSelect: document.getElementById('customer-select'),
+      refreshBtn: document.getElementById('btn-refresh'),
+      panelIdle: document.getElementById('panel-idle'),
+      panelHeld: document.getElementById('panel-held'),
+      activeHoldBadge: document.getElementById('active-hold-badge'),
+      heldSeatLabel: document.getElementById('held-seat-label'),
+      heldCustomerName: document.getElementById('held-customer-name'),
+      countdownTimer: document.getElementById('countdown-timer'),
+      timerProgress: document.getElementById('timer-progress'),
+      btnConfirm: document.getElementById('btn-confirm'),
+      btnRelease: document.getElementById('btn-release'),
+      telemetryLog: document.getElementById('telemetry-log'),
+      btnClearLog: document.getElementById('btn-clear-log'),
+      toastContainer: document.getElementById('toast-container'),
+    };
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      const styles = {
+        success: 'border-emerald-500/40 bg-zinc-900 text-emerald-300 shadow-emerald-500/10',
+        conflict: 'border-amber-500/40 bg-zinc-900 text-amber-300 shadow-amber-500/10',
+        error: 'border-red-500/40 bg-zinc-900 text-red-300 shadow-red-500/10',
+        info: 'border-zinc-700 bg-zinc-900 text-zinc-300',
+      }[type] || 'border-zinc-700 bg-zinc-900 text-zinc-300';
+
+      const icon = {
+        success: '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>',
+        conflict: '<i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 shrink-0"></i>',
+        error: '<i data-lucide="alert-circle" class="w-4 h-4 text-red-400 shrink-0"></i>',
+        info: '<i data-lucide="info" class="w-4 h-4 text-zinc-400 shrink-0"></i>',
+      }[type] || '';
+
+      toast.className = `flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border shadow-lg text-xs font-medium transition-all duration-300 opacity-0 translate-y-1 ${styles}`;
+      toast.innerHTML = `${icon}<span>${message}</span>`;
+      dom.toastContainer.appendChild(toast);
+      lucide.createIcons();
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('opacity-0', 'translate-y-1');
+        toast.classList.add('opacity-100', 'translate-y-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-1');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    function logTelemetry(method, url, status, message) {
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      const isSuccess = status >= 200 && status < 300;
+      const isConflict = status === 409 || status === 410;
+      const statusColor = isSuccess ? 'text-emerald-400' : isConflict ? 'text-amber-400' : 'text-red-400';
+      
+      div.innerHTML = `
+        <span class="text-zinc-600">[${time}]</span>
+        <span class="font-semibold text-zinc-300">${method}</span>
+        <span class="${statusColor} font-bold">${status}</span>
+        <span class="text-zinc-400">${message}</span>
+      `;
+      dom.telemetryLog.prepend(div);
+    }
+
+    function generateUUID() {
+      return 'req-' + Math.random().toString(36).substring(2, 9) + '-' + Date.now();
+    }
+
+    async function fetchSeats() {
+      try {
+        const res = await fetch(`/api/v1/events/${EVENT_ID}/seats`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        seats = await res.json();
+        renderSeats();
+        updateStats();
+
+        // If an active hold is tracking, ensure it is still live in inventory
+        if (activeHold) {
+          const matchingSeat = seats.find(s => s.id === activeHold.seatID);
+          if (!matchingSeat || matchingSeat.status !== 'held' || matchingSeat.held_by !== activeHold.customer) {
+            clearHeldPanel();
+          } else if (matchingSeat.held_until) {
+            activeHold.heldUntil = new Date(matchingSeat.held_until);
+          }
+        }
+      } catch (err) {
+        logTelemetry('GET', `/api/v1/events/${EVENT_ID}/seats`, 'ERR', err.message);
+      }
+    }
+
+    function updateStats() {
+      const free = seats.filter(s => s.status === 'free').length;
+      const held = seats.filter(s => s.status === 'held').length;
+      const booked = seats.filter(s => s.status === 'booked').length;
+      dom.freeStat.textContent = free;
+      dom.heldStat.textContent = held;
+      dom.bookedStat.textContent = booked;
+    }
+
+    function renderSeats() {
+      dom.grid.innerHTML = '';
+      const currentCustomer = dom.customerSelect.value;
+
+      seats.forEach(seat => {
+        const btn = document.createElement('button');
+        btn.id = `seat-${seat.id}`;
+        btn.textContent = seat.label;
+        btn.className = 'h-11 sm:h-12 rounded-xl font-mono text-xs font-bold transition-all flex flex-col items-center justify-center relative ';
+
+        if (seat.status === 'free') {
+          btn.className += 'bg-zinc-800/80 hover:bg-emerald-500/20 text-zinc-300 hover:text-emerald-300 border border-zinc-700/60 hover:border-emerald-500/80 shadow-sm cursor-pointer hover:scale-[1.04] active:scale-95';
+          btn.title = `Seat ${seat.label} — Available`;
+          btn.onclick = () => handlePlaceHold(seat);
+        } else if (seat.status === 'held') {
+          if (seat.held_by === currentCustomer) {
+            btn.className += 'bg-amber-500/20 text-amber-300 border-2 border-amber-400 shadow-md shadow-amber-500/20 animate-pulse-subtle cursor-pointer';
+            btn.title = `Seat ${seat.label} — Held by You`;
+            btn.onclick = () => selectHeldSeat(seat);
+          } else {
+            btn.className += 'bg-zinc-900/60 text-amber-500/60 border border-dashed border-amber-500/40 cursor-pointer hover:border-amber-400';
+            btn.title = `Seat ${seat.label} — Held by ${seat.held_by || 'another buyer'} (Click to test 409 Conflict)`;
+            btn.onclick = () => handlePlaceHold(seat); // Clicking demonstrates 409 Conflict under contention!
+          }
+        } else if (seat.status === 'booked') {
+          btn.className += 'bg-zinc-950 text-zinc-600 border border-zinc-900 cursor-not-allowed line-through opacity-45';
+          btn.title = `Seat ${seat.label} — Booked (Sold)`;
+          btn.disabled = true;
+        }
+
+        dom.grid.appendChild(btn);
+      });
+    }
+
+    function selectHeldSeat(seat) {
+      activeHold = {
+        seatID: seat.id,
+        label: seat.label,
+        heldUntil: new Date(seat.held_until),
+        customer: seat.held_by,
+        idempotencyKey: generateUUID(),
+      };
+      showHeldPanel(activeHold);
+    }
+
+    async function handlePlaceHold(seat) {
+      const customer = dom.customerSelect.value;
+      const idempotencyKey = generateUUID();
+
+      try {
+        const res = await fetch(`/api/v1/events/${EVENT_ID}/seats/${seat.id}/hold`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Idempotency-Key': idempotencyKey,
+          },
+          body: JSON.stringify({ customer }),
+        });
+
+        const data = await res.json();
+
+        if (res.status === 201 || res.status === 200) {
+          logTelemetry('POST', `/seats/${seat.id}/hold`, res.status, `Hold granted for ${seat.label} [key: ${idempotencyKey.slice(0, 11)}...]`);
+          showToast(`Hold granted! Seat ${seat.label} locked for 10 min.`, 'success');
+          activeHold = {
+            seatID: seat.id,
+            label: seat.label,
+            heldUntil: new Date(data.held_until),
+            customer: customer,
+            idempotencyKey: idempotencyKey,
+          };
+          showHeldPanel(activeHold);
+          await fetchSeats();
+        } else if (res.status === 409) {
+          logTelemetry('POST', `/seats/${seat.id}/hold`, 409, `Conflict: ${data.error ? data.error.message : 'Seat already held/booked'}`);
+          showToast(`Conflict (409): Seat ${seat.label} is taken by another buyer.`, 'conflict');
+          await fetchSeats();
+        } else {
+          const errMsg = data.error ? data.error.message : 'Request failed';
+          logTelemetry('POST', `/seats/${seat.id}/hold`, res.status, errMsg);
+          showToast(`Hold failed (${res.status}): ${errMsg}`, 'error');
+        }
+      } catch (err) {
+        logTelemetry('POST', `/seats/${seat.id}/hold`, 'ERR', err.message);
+        showToast(`Network error: ${err.message}`, 'error');
+      }
+    }
+
+    async function handleConfirmBooking() {
+      if (!activeHold) return;
+      const idempotencyKey = generateUUID();
+
+      try {
+        const res = await fetch(`/api/v1/events/${EVENT_ID}/seats/${activeHold.seatID}/confirm`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Idempotency-Key': idempotencyKey,
+          },
+          body: JSON.stringify({ customer: activeHold.customer }),
+        });
+
+        const data = await res.json();
+
+        if (res.status === 200) {
+          logTelemetry('POST', `/seats/${activeHold.seatID}/confirm`, 200, `Confirmed! Seat ${activeHold.label} booked.`);
+          showToast(`Confirmed! Seat ${activeHold.label} has been booked.`, 'success');
+          clearHeldPanel();
+          await fetchSeats();
+        } else {
+          const errMsg = data.error ? data.error.message : 'Confirmation failed';
+          logTelemetry('POST', `/seats/${activeHold.seatID}/confirm`, res.status, errMsg);
+          showToast(`Confirmation failed (${res.status}): ${errMsg}`, 'error');
+          await fetchSeats();
+        }
+      } catch (err) {
+        logTelemetry('POST', `/confirm`, 'ERR', err.message);
+        showToast(`Network error: ${err.message}`, 'error');
+      }
+    }
+
+    async function handleReleaseHold() {
+      if (!activeHold) return;
+      const idempotencyKey = generateUUID();
+
+      try {
+        const res = await fetch(`/api/v1/events/${EVENT_ID}/seats/${activeHold.seatID}/release`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Idempotency-Key': idempotencyKey,
+          },
+          body: JSON.stringify({ customer: activeHold.customer }),
+        });
+
+        const data = await res.json();
+
+        if (res.status === 200) {
+          logTelemetry('POST', `/seats/${activeHold.seatID}/release`, 200, `Released hold on seat ${activeHold.label}.`);
+          showToast(`Hold on seat ${activeHold.label} released.`, 'info');
+          clearHeldPanel();
+          await fetchSeats();
+        } else {
+          const errMsg = data.error ? data.error.message : 'Release failed';
+          logTelemetry('POST', `/release`, res.status, errMsg);
+          showToast(`Release failed (${res.status}): ${errMsg}`, 'error');
+        }
+      } catch (err) {
+        logTelemetry('POST', `/release`, 'ERR', err.message);
+        showToast(`Network error: ${err.message}`, 'error');
+      }
+    }
+
+    function showHeldPanel(hold) {
+      dom.panelIdle.classList.add('hidden');
+      dom.panelHeld.classList.remove('hidden');
+      dom.activeHoldBadge.classList.remove('hidden');
+
+      dom.heldSeatLabel.textContent = hold.label;
+      dom.heldCustomerName.textContent = hold.customer;
+
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      const totalDurationMs = 10 * 60 * 1000;
+
+      function updateCountdown() {
+        const targetTime = hold.heldUntil instanceof Date ? hold.heldUntil : new Date(hold.heldUntil);
+        const diffMs = targetTime - new Date();
+
+        if (diffMs <= 0) {
+          dom.countdownTimer.textContent = '00:00 (Expired)';
+          dom.countdownTimer.className = 'font-mono text-base font-bold text-red-400';
+          dom.timerProgress.style.width = '0%';
+          dom.timerProgress.className = 'bg-red-500 h-1.5 rounded-full';
+          clearInterval(countdownInterval);
+          clearHeldPanel();
+          fetchSeats();
+          return;
+        }
+
+        const totalSec = Math.floor(diffMs / 1000);
+        const mins = String(Math.floor(totalSec / 60)).padStart(2, '0');
+        const secs = String(totalSec % 60).padStart(2, '0');
+        dom.countdownTimer.textContent = `${mins}:${secs}`;
+
+        const pct = Math.max(0, Math.min(100, (diffMs / totalDurationMs) * 100));
+        dom.timerProgress.style.width = `${pct}%`;
+
+        if (diffMs < 60 * 1000) {
+          dom.countdownTimer.className = 'font-mono text-base font-bold text-red-400 animate-pulse';
+          dom.timerProgress.className = 'bg-red-500 h-1.5 rounded-full transition-all duration-1000 ease-linear';
+        } else {
+          dom.countdownTimer.className = 'font-mono text-base font-bold text-amber-300';
+          dom.timerProgress.className = 'bg-amber-400 h-1.5 rounded-full transition-all duration-1000 ease-linear';
+        }
+      }
+
+      updateCountdown();
+      countdownInterval = setInterval(updateCountdown, 1000);
+    }
+
+    function clearHeldPanel() {
+      activeHold = null;
+      if (countdownInterval) clearInterval(countdownInterval);
+      dom.panelHeld.classList.add('hidden');
+      dom.activeHoldBadge.classList.add('hidden');
+      dom.panelIdle.classList.remove('hidden');
+    }
+
+    // Event Listeners
+    dom.btnConfirm.onclick = handleConfirmBooking;
+    dom.btnRelease.onclick = handleReleaseHold;
+    dom.refreshBtn.onclick = fetchSeats;
+    dom.btnClearLog.onclick = () => {
+      dom.telemetryLog.innerHTML = '<div class="text-zinc-600">// Engine live. Ready for requests.</div>';
+    };
+
+    dom.customerSelect.onchange = () => {
+      renderSeats();
+      const currentCustomer = dom.customerSelect.value;
+      const userHeldSeat = seats.find(s => s.status === 'held' && s.held_by === currentCustomer);
+      if (userHeldSeat) {
+        selectHeldSeat(userHeldSeat);
+      } else {
+        clearHeldPanel();
+      }
+    };
+
+    // Auto-poll every 3 seconds to keep seat status synchronized across clients
+    setInterval(fetchSeats, 3000);
+
+    // Initial load
+    fetchSeats();
+  </script>
+</body>
+</html>
