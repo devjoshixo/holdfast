@@ -53,6 +53,69 @@ Design and reasoning: **[docs/M2-design.md](docs/M2-design.md)**.
 
 ---
 
+## System Architecture
+
+```mermaid
+graph TD
+    subgraph Clients["Traffic Sources"]
+        Browser["Web UI (Tailwind Grid)"]
+        LoadGen["k6 Load Test (50 VUs)"]
+    end
+
+    subgraph Edge["Reverse Proxy / Load Balancer"]
+        Nginx["Nginx (Port 8080)<br/>Round-Robin Upstream"]
+    end
+
+    subgraph Cluster["Go Application Replicas (Docker Compose)"]
+        subgraph Node1["api-1:8080"]
+            AC1["Admission Control<br/>chan struct{} (25 slots)"]
+            Mux1["HTTP ServeMux<br/>/hold, /confirm, /release"]
+            Reaper1["Background Reaper<br/>FOR UPDATE SKIP LOCKED"]
+        end
+
+        subgraph Node2["api-2:8080"]
+            AC2["Admission Control<br/>chan struct{} (25 slots)"]
+            Mux2["HTTP ServeMux<br/>/hold, /confirm, /release"]
+            Reaper2["Background Reaper<br/>FOR UPDATE SKIP LOCKED"]
+        end
+
+        subgraph Node3["api-3:8080"]
+            AC3["Admission Control<br/>chan struct{} (25 slots)"]
+            Mux3["HTTP ServeMux<br/>/hold, /confirm, /release"]
+            Reaper3["Background Reaper<br/>FOR UPDATE SKIP LOCKED"]
+        end
+    end
+
+    subgraph Storage["Single Source of Truth"]
+        PG[("PostgreSQL 16<br/>Atomic CAS & Row Locks")]
+    end
+
+    Browser -->|HTTP Requests| Nginx
+    LoadGen -->|HTTP Requests| Nginx
+
+    Nginx -->|X-Backend-Server| AC1
+    Nginx -->|X-Backend-Server| AC2
+    Nginx -->|X-Backend-Server| AC3
+
+    AC1 -->|Admitted| Mux1
+    AC2 -->|Admitted| Mux2
+    AC3 -->|Admitted| Mux3
+
+    AC1 -.->|Capacity Exceeded| R429_1["429 Too Many Requests"]
+    AC2 -.->|Capacity Exceeded| R429_2["429 Too Many Requests"]
+    AC3 -.->|Capacity Exceeded| R429_3["429 Too Many Requests"]
+
+    Mux1 -->|Atomic CAS / Idempotency| PG
+    Mux2 -->|Atomic CAS / Idempotency| PG
+    Mux3 -->|Atomic CAS / Idempotency| PG
+
+    Reaper1 -->|Sweep Expired Holds| PG
+    Reaper2 -->|Sweep Expired Holds| PG
+    Reaper3 -->|Sweep Expired Holds| PG
+```
+
+---
+
 ## How it's built
 
 - **Go** for the booking engine, **PostgreSQL** for storage, **pgx** driver.

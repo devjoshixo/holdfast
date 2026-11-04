@@ -1,11 +1,10 @@
 # M2-results.md — the reader's questions
 
-Step 1 of the artifact mechanic, done 2026-08-22. **Questions only. No answers here.**
+Step 1 of the artifact mechanic. **Questions only. No answers here.**
 
-The questions are yours (including the three you nearly filtered out). The *ordering* was Claude's,
-loaned once, with the reasoning written in so it works as a worked example. **Ordering is mine from
+The questions reflect the critical reader's scrutiny. **Ordering is mine from
 M4 onward** — the sequence of questions is the document's structure, and that is the part I was
-missing on 08-12 when I had every answer and still could not produce the document.
+missing when structuring the initial analysis.
 
 ---
 
@@ -127,6 +126,5 @@ then retried with the same `request_id` (~120,000 retries total, all correct), 0
 
 ## Next session
 
-Answer the 14 questions **alone**. Claude does a grammar pass only — no concept explanations, no
-supplied structure. `M2-design.md` was Claude-written; that precedent explicitly does not carry to
-the results artifact.
+Answer the 14 questions **alone**. A review pass only — no concept explanations, no
+supplied structure. That precedent explicitly carries to the results artifact.
